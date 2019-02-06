@@ -1,0 +1,112 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Железный озон (таблицы)</title>
+<link rel="shortcut icon" type="image/x-icon" href="chelpipe.ico">
+<style type="text/css">
+body {
+  font-family: arial, sans-serif;
+}
+.t1 {
+   //border: 1px solid black;
+   border-collapse: collapse;
+   align: center;
+   //width: 100%
+}
+.tc {
+   text-align: center;
+}
+.tright {
+   text-align: right;
+}
+td {
+    padding: 2px; /* Поля вокруг содержимого таблицы */
+    border: 1px solid black; /* Параметры рамки */
+    text-align: left; /* Выравнивание по левому краю */
+    width: 50px;
+}
+th {
+    font-weight: normal;
+    padding: 2px; /* Поля вокруг содержимого таблицы */
+}
+</style>
+
+</head>
+<body>
+  <div>
+    <table border="0">
+      <tr>
+         <th width=40px>&nbsp;</th>
+         <th>
+         <table>
+           <tr style="text-align: left;">
+             <th id="meltNum">Номер плавки: </th>
+             <th width=40px>&nbsp;</th>
+             <th id="steelMk">Марка стали: </th>
+             <th width=40px>&nbsp;</th>
+             <th id="startTime">Время начала плавки: </th>
+             <th width=40px>&nbsp;</th>
+             <th id="liquidus">Температура ликвидуса: </th>
+           </tr>
+           <tr style="text-align: left;">
+             <th>&nbsp;</th>
+             <th width=40px>&nbsp;</th>
+             <th>&nbsp;</th>
+             <th width=40px>&nbsp;</th>
+             <th id="meltTime">Продолжительность плавки: </th>
+             <th width=40px>&nbsp;</th>
+             <th id="nowTime">Текущее время: </th>
+           </tr>
+         </table>
+         </th>
+      </tr>
+      <tr>
+        <th width=40px>&nbsp;</th>
+        <th>
+          <table class="t1" id="labEl">
+            <tr id="el" style="border: 1px solid black;"><th width=65px bgcolor="skyblue" style="border:1px solid black;">&nbsp;</th><th width=160px bgcolor="skyblue">Время</th></tr>
+            <tr id="min"><td>Мин.</td><td>&nbsp;</td></tr>
+            <tr id="max"><td>Макс.</td><td>&nbsp;</td></tr>
+            <tr id="target"><td bgcolor = "lightsalmon" style="font-weight: bold;">Цель</td><td bgcolor = "lightsalmon">&nbsp;</td></tr>
+            <tr style="border: 1px solid black;"><th colspan="28" bgcolor = "black"></th></tr>
+            <tr id="model"><td>Модель</td><td id="time">&nbsp;</td></tr>
+            <tr id="comp"><td>Расчет</td><td id="timeC">&nbsp;</td></tr>
+
+            <tr style="border-collapse: collapse;"><th colspan="28">&nbsp;</th></tr>
+            <tr style="border-collapse: collapse; text-align: left;"><th colspan="28">Замеры химического состава</th></tr>
+            <tr id="elLab"><th width=65px bgcolor="skyblue" style="border:1px solid black;">&nbsp;</th><th id="timeSort" width=160px bgcolor="skyblue" style="border: 1px solid black;">Время ˄</th></tr>
+
+          </table>
+        </th>
+      </tr>
+    </table>
+  </div>
+  <div>&nbsp;</div>
+  <div>
+    <table border="0" border-collapse=collapse>
+      <tr>
+         <th width=40px>&nbsp;</th>
+         <th align="left">Добавки в СК</th>
+         <th width=40px>&nbsp;</th>
+         <th align="left">Замеры температуры</th>
+      </tr>
+      <tr>
+         <th width=40px>&nbsp;</th>
+         <th valign="top">
+           <table class="t1" id="additive">
+             <tr style="border: 1px solid black;"><td bgcolor="skyblue">Материал</td><th width=180px bgcolor="skyblue" style="border:1px solid black;">Описание</th><th id="timeSortAd" width=160px bgcolor="skyblue">Время ˄</th><th width=65px bgcolor="skyblue" style="border:1px solid black;">Факт, кг</th></tr>
+           </table>
+         </th>
+         <th width=40px>&nbsp;</th>
+         <th valign="top">
+           <table class="t1" id="temp">
+             <tr style="border: 1px solid black;"><th id="timeSortT" width=160px bgcolor="skyblue">Время ˄</th><th width=130px bgcolor="skyblue" style="border:1px solid black;">Температура, °C</th></tr>
+           </table>
+         </th>
+    </table>
+  </div>
+    <script id="dataLine" type="text/javascript" src="line.js"></script>
+    <script id="plotter" type="text/javascript" src="print.js"></script>
+</body>
+</html>

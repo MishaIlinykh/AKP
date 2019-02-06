@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Железный Озон</title>
+    <link rel="shortcut icon" type="image/x-icon" href="chelpipe.ico">
+    <link rel="stylesheet" href="style.css">
+  </head>
+
+  <body>
+    <div>&nbsp;</div>
+    <div id="checkDiv1" class="check"></div>
+    <div id="checkDiv2" class="check"></div>
+    <div>&nbsp;</div>
+    <div>
+      <label>&nbsp;</label><label id="number">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text</label>
+    </div>
+    <div>
+      <label>&nbsp;</label><label id="mouse">&nbsp;</label>
+    </div>
+    <div>
+      <table>
+        <tr>
+          <td><label>&nbsp;</label></td>
+          <td>
+            <div id="parent">
+              <canvas id="Canvas" class="canvas" width="800" height="1200" style="border:1px solid #000; left: 20px; background: lightgray; cursor: crosshair"></canvas>
+            </div>
+          </td>
+          <td valign="top">
+            <canvas id="Canvas2" width="365" height="500" style="border:1px solid #000; left: 825px; background: lightgray"></canvas>
+          </td>
+          <td width=20px></td>
+          <td valign="top">
+           <label><b>Добавки в СК</b></label>
+           <div>&nbsp;</div>
+           <table id="additive" style="border-collapse: collapse;">
+             <tr style="border-bottom: 1pt solid black;"><td width=100px>Материал</td><td width=120px>Описание</td><td width=150px>Время</td><td>Факт, кг</td></tr>
+           </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div>&nbsp;</div>
+    <div>
+      <label>&nbsp;</label><label id="time">&nbsp;Текущее время:&nbsp;</label>
+    </div>
+    <div>
+      <label>&nbsp;</label><label id="timeInt">&nbsp;Продолжительность плавки:&nbsp;</label>
+    </div>
+      <table>
+        <tr>
+         <td width="30">&nbsp;</td>
+         <td>
+          <table id="lab" style="border-collapse: collapse;" border="1">
+            <tr id="el" style="text-align: center; background: lemonchiffon"><td width=140px>Время</td></tr>
+          </table>
+         </td>
+        </tr>
+      </table>
+    <script id="dataLine" type="text/javascript" src="line.js"></script>
+    <script id="plotter" type="text/javascript" src="plot.js"></script>
+  </body>
+</html>
