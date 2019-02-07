@@ -12,9 +12,9 @@ def addMelting(dataFrame, name_dir, mark, counter):
         tel_grade_dop = open_DF(name_dir + '/LF_OUT/' + LF_TlgSender_dop)
         tel_grade = tel_grade_dop.copy()
 
-    # удаляем файлы
-    if counter == 0:
-        delUnnecessaryFiles(name_dir + '/LF_OUT')
+    # # удаляем файлы
+    # if counter == 0:
+    #     delUnnecessaryFiles(name_dir + '/LF_OUT')
 
     # извлекаем номер плавки, марку стали, время начала плавки
     tel_grade = tel_grade[tel_grade[3] == signal_st]
@@ -78,9 +78,9 @@ def addWeightEAL(dataFrame, name_dir, counter):
         tel_EAF = pd.concat([tel_EAF_dop, tel_EAF])
     tel_EAF.reset_index(inplace=True, drop=True)
 
-    # удаляем файлы
-    if counter ==0:
-        delUnnecessaryFiles(name_dir + '/EAF')
+    # # удаляем файлы
+    # if counter ==0:
+    #     delUnnecessaryFiles(name_dir + '/EAF')
 
     # находим массут добавок на ДСП
     m = 0
@@ -107,9 +107,9 @@ def addMeasurementChemistry(dataFrame, name_dir, counter):
         tel_chemical = pd.concat([tel_chemical, tel_chemical_dop])
     tel_chemical.reset_index(inplace=True, drop=True)
 
-    # удаляем файлы
-    if counter == 0:
-        delUnnecessaryFiles(name_dir + '/LAB')
+    # # удаляем файлы
+    # if counter == 0:
+    #     delUnnecessaryFiles(name_dir + '/LAB')
 
     # проверяем колличесво замеров химии
     flag = tel_chemical.shape[0]
@@ -148,11 +148,14 @@ def addMeasurementChemistry(dataFrame, name_dir, counter):
 
     return dataFrame, flag
 #-----------------------------------------------------------------------------------------------------------------------
-def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, material, flag):
+def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, material, titles_for_temp, flag):
     signal_t = 'LFL211'
     signal_el = 'LFL223'
     signal_mat = 'LFL260'
     melting = dataFrame.loc[0, 'Номер плавки']
+    for_temp = pd.DataFrame(columns=titles_for_temp)
+    for i in titles_for_temp[3:]:
+        for_temp.loc[0, i] = 0
     dataFrame_chCals = dataFrame.copy()
     LF_TlgReceiver, LF_TlgReceiver_dop = getTwoLast(name_dir + '/LF')
     tel_main = open_DF(name_dir + '/LF/' + LF_TlgReceiver)
@@ -167,9 +170,9 @@ def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, 
         tel_main = pd.concat([tel_main_dop, tel_main])
     tel_main.reset_index(inplace=True, drop=True)
 
-    # удаляем файлы
-    if counter ==0:
-        delUnnecessaryFiles(name_dir + '/LF')
+    # # удаляем файлы
+    # if counter ==0:
+    #     delUnnecessaryFiles(name_dir + '/LF')
 
     # добавляем время в нужном формате
     for i in range(tel_main.shape[0]):
@@ -193,6 +196,17 @@ def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, 
         else:
             temperature.loc[i, 'Окисленность'] = None
 
+    # заполняем датафрейм для прогнозирования температуры
+    flag_temp = temperature.shape[0]
+    if flag_temp > 0:
+        ind_temp = temperature[temperature['Время замера температуры'] == max(temperature['Время замера температуры'].value_counts().index)].index[0]
+        for_temp.loc[0, 'TEMP'] = temperature.loc[ind_temp, 'TEMP']
+        for_temp.loc[0, 'Время замера температуры'] = temperature.loc[ind_temp, 'Время замера температуры']
+        for_temp.loc[0, 'Время'] = datetime.now()
+        t = for_temp.loc[0, 'Время'] - for_temp.loc[0, 'Время замера температуры']
+        for_temp.loc[0, 'TIME'] = round(t.seconds / 60)
+
+
     # заполняем датафрейм с добавками митериала
     temp = tel_main[(tel_main[3] == signal_mat) & (tel_main[25] == '9')]
     temp.reset_index(inplace=True, drop=True)
@@ -206,6 +220,42 @@ def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, 
                 all_additive.loc[k, 'Описание'] = material[material['MAT_CODE']==int(temp.iloc[i][j])]['DESC_C'].values[0]
                 all_additive.loc[k, 'Масса'] = int(st[j + 1])
                 k += 1
+
+    # добавляем электроэнерггию для прогнозирования темпеартуры
+    if flag_temp > 0:
+        temp = tel_main[
+            (tel_main[3] == signal_el) & (tel_main['data_time'] > for_temp.loc[0, 'Время замера температуры']) &
+            (tel_main['data_time'] < for_temp.loc[0, 'Время'])]
+        if len(temp['data_time']) != 0:
+            w0 = temp[temp['data_time'] == min(temp['data_time'])][22].values[0]
+            w1 = temp[temp['data_time'] == max(temp['data_time'])][22].values[0]
+            w = (int(w1) - int(w0)) / 1000
+        else:
+            w = 0
+        for_temp.loc[0, 'W'] = w
+
+    # добавляем добавки материалов для прогнозирования температуры
+    if flag_temp > 0:
+        temp = tel_main[
+            (tel_main[3] == signal_mat) & (tel_main['data_time'] > for_temp.loc[0, 'Время замера температуры']) & (
+                    tel_main[25] == '9')]
+        temp.reset_index(inplace=True, drop=True)
+        for i in range(temp.shape[0]):
+            st = temp.iloc[i]
+            for j in range(27, 47, 2):
+                if int(st[j]) != 0:
+                    mat = material[material['MAT_CODE'] == int(temp.iloc[i][j])]['DESC_C'].value_counts().index[0]
+                    try:
+                        for_temp.loc[0, mat] += int(st[j + 1])
+                    except KeyError:
+                        try:
+                            mat = \
+                                material[material['MAT_CODE'] == int(temp.iloc[i][j])][
+                                    'DESC_C_dop'].value_counts().index[
+                                    0]
+                            for_temp.loc[0, mat] += int(st[j + 1])
+                        except IndexError:
+                            for_temp[mat] = int(st[j + 1])
 
     if flag > 0 and tel_main.shape[0] > 0:
 
@@ -224,7 +274,7 @@ def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, 
 
         # добавляем электроэнерггию
         temp = tel_main[(tel_main[3] == signal_el) & (tel_main['data_time'] > dataFrame.loc[0, 'Последний замер химии']) &
-                        (tel_main['data_time'] < dataFrame.loc[0, 'Время'])]
+            (tel_main['data_time'] < dataFrame.loc[0, 'Время'])]
         if len(temp['data_time']) != 0:
             w0 = temp[temp['data_time'] == min(temp['data_time'])][22].values[0]
             w1 = temp[temp['data_time'] == max(temp['data_time'])][22].values[0]
@@ -233,8 +283,11 @@ def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, 
             w = 0
         dataFrame.loc[0, 'W'] = w
 
+        # добавляем добавки материалов
         dataFrame_chCals = dataFrame.copy()
-        temp = tel_main[(tel_main[3] == signal_mat)&(tel_main['data_time'] > dataFrame.loc[0, 'Последний замер химии'])&(tel_main[25] == '9')]
+        temp = tel_main[
+            (tel_main[3] == signal_mat) & (tel_main['data_time'] > dataFrame.loc[0, 'Последний замер химии']) & (
+                        tel_main[25] == '9')]
         temp.reset_index(inplace=True, drop=True)
         for i in range(temp.shape[0]):
             st = temp.iloc[i]
@@ -246,10 +299,13 @@ def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, 
                         dataFrame_chCals.loc[0, mat] += int(st[j + 1])
                     except KeyError:
                         dataFrame_chCals[mat] = int(st[j + 1])
+
                         try:
                             mat = \
-                            material[material['MAT_CODE'] == int(temp.iloc[i][j])]['DESC_C_dop'].value_counts().index[
-                                0] + '2'
+                                material[material['MAT_CODE'] == int(temp.iloc[i][j])][
+                                    'DESC_C_dop'].value_counts().index[
+                                    0] + '2'
+
                             dataFrame.loc[0, mat] += int(st[j + 1])
                         except IndexError:
                             dataFrame[mat] = int(st[j + 1])
@@ -257,5 +313,5 @@ def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, 
                             print('Плавка ', melting)
                             print()
 
-    return dataFrame, dataFrame_chCals, temperature, all_additive
+    return dataFrame, dataFrame_chCals, temperature, all_additive, for_temp, flag_temp
 #-----------------------------------------------------------------------------------------------------------------------

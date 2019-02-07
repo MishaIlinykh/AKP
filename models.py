@@ -2,51 +2,54 @@ import pandas as pd
 from sklearn.externals import joblib
 from sklearn import preprocessing
 #-----------------------------------------------------------------------------------------------------------------------
-def __load_model(name_target='empty'):
+def __load_model(name_target, dir):
     if name_target =='empty':
-        sc = preprocessing.StandardScaler()
-        sc = joblib.load('C:/Users/Mikhail.Ilinykh/Desktop/new2_exp/model_GB/scaler_TEMP2')
-        titles = joblib.load('C:/Users/Mikhail.Ilinykh/Desktop/new2_exp/model_GB/titles_TEMP2.json')
+        sc = joblib.load(dir+'model_GB/scaler_VALC2')
+        titles = joblib.load(dir+'model_GB/titles_VALC2.json')
         return sc, titles
     if name_target =='S':
-        sc = preprocessing.StandardScaler()
-        sc = joblib.load('C:/Users/Mikhail.Ilinykh/Desktop/new2_exp/model_GB/scaler_VALS2')
-        titles = joblib.load('C:/Users/Mikhail.Ilinykh/Desktop/new2_exp/model_GB/titles_VALS2.json')
+        sc = joblib.load(dir+'model_GB/scaler_VALS2')
+        titles = joblib.load(dir+'model_GB/titles_VALS2.json')
+        return sc, titles
+    if name_target == 'TEMP':
+        sc = joblib.load(dir+'model_GB/scaler_TEMP2')
+        titles = joblib.load(dir+'model_GB/titles_TEMP2.json')
         return sc, titles
     else:
-        GB = joblib.load('C:/Users/Mikhail.Ilinykh/Desktop/new2_exp/model_GB/GB_'+name_target+'.pkl')
+        GB = joblib.load(dir+'model_GB/GB_'+name_target+'.pkl')
         return GB
 #-----------------------------------------------------------------------------------------------------------------------
-def add_models():
-    sc, titles = __load_model()
-    sc_VALS, titles_VALS = __load_model('S')
-    GB_TEMP2 = __load_model('TEMP2')
-    GB_VALC = __load_model('VALC2')
-    GB_VALSI = __load_model('VALSI2')
-    GB_VALMN = __load_model('VALMN2')
-    GB_VALP = __load_model('VALP2')
-    GB_VALS = __load_model('VALS2')
-    GB_VALAL = __load_model('VALAL2')
-    GB_VALALS = __load_model('VALALS2')
-    GB_VALCU = __load_model('VALCU2')
-    GB_VALCR = __load_model('VALCR2')
-    GB_VALMO = __load_model('VALMO2')
-    GB_VALNI = __load_model('VALNI2')
-    GB_VALV = __load_model('VALV2')
-    GB_VALTI = __load_model('VALTI2')
-    GB_VALNB = __load_model('VALNB2')
-    GB_VALCA = __load_model('VALCA2')
-    GB_VALCO = __load_model('VALCO2')
-    GB_VALPB = __load_model('VALPB2')
-    GB_VALW = __load_model('VALW2')
-    GB_VALCE = __load_model('VALCE2')
-    GB_VALB = __load_model('VALB2')
-    GB_VALAS = __load_model('VALAS2')
-    GB_VALSN = __load_model('VALSN2')
-    GB_VALBI = __load_model('VALBI2')
-    GB_VALZR = __load_model('VALZR2')
-    GB_VALO = __load_model('VALO2')
-    GB_VALN = __load_model('VALN2')
+def add_models(dir):
+    sc, titles = __load_model('empty', dir)
+    sc_VALS, titles_VALS = __load_model('S', dir)
+    sc_TEMP, titles_TEMP = __load_model('TEMP', dir)
+    GB_TEMP2 = __load_model('TEMP2', dir)
+    GB_VALC = __load_model('VALC2', dir)
+    GB_VALSI = __load_model('VALSI2', dir)
+    GB_VALMN = __load_model('VALMN2', dir)
+    GB_VALP = __load_model('VALP2', dir)
+    GB_VALS = __load_model('VALS2', dir)
+    GB_VALAL = __load_model('VALAL2', dir)
+    GB_VALALS = __load_model('VALALS2', dir)
+    GB_VALCU = __load_model('VALCU2', dir)
+    GB_VALCR = __load_model('VALCR2', dir)
+    GB_VALMO = __load_model('VALMO2', dir)
+    GB_VALNI = __load_model('VALNI2', dir)
+    GB_VALV = __load_model('VALV2', dir)
+    GB_VALTI = __load_model('VALTI2', dir)
+    GB_VALNB = __load_model('VALNB2', dir)
+    GB_VALCA = __load_model('VALCA2', dir)
+    GB_VALCO = __load_model('VALCO2', dir)
+    GB_VALPB = __load_model('VALPB2', dir)
+    GB_VALW = __load_model('VALW2', dir)
+    GB_VALCE = __load_model('VALCE2', dir)
+    GB_VALB = __load_model('VALB2', dir)
+    GB_VALAS = __load_model('VALAS2', dir)
+    GB_VALSN = __load_model('VALSN2', dir)
+    GB_VALBI = __load_model('VALBI2', dir)
+    GB_VALZR = __load_model('VALZR2', dir)
+    GB_VALO = __load_model('VALO2', dir)
+    GB_VALN = __load_model('VALN2', dir)
     models = {'TEMP2': GB_TEMP2, 'VALC2': GB_VALC, 'VALSI2':GB_VALSI,
       'VALMN2':GB_VALMN, 'VALP2':GB_VALP, 'VALS2':GB_VALS,
       'VALAL2':GB_VALAL, 'VALALS2':GB_VALALS, 'VALCU2':GB_VALCU,
@@ -56,11 +59,11 @@ def add_models():
       'VALW2':GB_VALW, 'VALCE2':GB_VALCE, 'VALB2':GB_VALB,
       'VALAS2':GB_VALAS, 'VALSN2':GB_VALSN, 'VALBI2':GB_VALBI,
       'VALZR2':GB_VALZR, 'VALO2':GB_VALO, 'VALN2':GB_VALN,
-      'titles':titles, 'sc':sc, 'title_VALS':titles_VALS, 'sc_VALS': sc_VALS}
+      'titles':titles, 'sc':sc, 'title_VALS':titles_VALS, 'sc_VALS': sc_VALS,
+      'sc_TEMP': sc_TEMP, 'titles_TEMP': titles_TEMP}
     return models
 #-----------------------------------------------------------------------------------------------------------------------
 def __for_crutch():
-
     # Для каждого химического элемента набор материалов,
     # содержащих данный химический элемент в значительном колличесве
 
@@ -72,7 +75,6 @@ def __for_crutch():
           'Концентрат ванадиевый ВКПЛ-102']
 
     crutch_mat = {'C': С, 'Si': Si, 'Mn': Mn}
-
     return  crutch_mat
 #-----------------------------------------------------------------------------------------------------------------------
 def predict(models, test, columns, all_titils):
@@ -96,7 +98,7 @@ def predict(models, test, columns, all_titils):
     test_pred = models['sc'].transform(test_pred)
     test_pred_S = test[models['title_VALS']]
     test_pred_S = models['sc_VALS'].transform(test_pred_S)
-    for i in columns[4:30:1]:
+    for i in columns[4:30]:
         if i == 'S':
             pred_value = round(models['VAL' + i + '2'].predict(test_pred_S)[0], 3)
             pred.loc[0, i] = pred_value
@@ -116,9 +118,14 @@ def predict(models, test, columns, all_titils):
             # Чтобы не вылезали отрицательные значения
             if pred.loc[0, i] < 0:
                 pred.loc[0, i] = 0
-        else:
-            pred.loc[0, i] = round(models['TEMP2'].predict(test_pred)[0])
     return pred
+#-----------------------------------------------------------------------------------------------------------------------
+def predict_TEMP(models, df, for_temp):
+    test_temp = for_temp[models['titles_TEMP']]
+    test_temp = models['sc_TEMP'].transform(test_temp)
+    df.loc[0, 'TEMP'] = round(models['TEMP2'].predict(test_temp)[0])
+    print('TEMP: ', round(models['TEMP2'].predict(test_temp)[0]))
+    return df
 #-----------------------------------------------------------------------------------------------------------------------
 def __mass_element(ferro, assimilation, test, element):
     val = 0
@@ -132,26 +139,20 @@ def __mass_element(ferro, assimilation, test, element):
 
     for col in c:
         if test.loc[0, col] <= 0:
-            if element  =='Si':
-                print('!!!', col)
             continue
         col = col[:-1]
         if ferro[ferro['Описание'] == col]['Шлакообразующий'].values[0] == 1:
-            print('!!', col)
             continue
         m = test.loc[0, col + '2']
         X = ferro[ferro['Описание'] == col][element].values[0]
         if X == 0:
-            print('!', col)
             continue
         if any(element in s for s in a):
             Y = assimilation[assimilation['Описание'] == col][element].values[0]
             val += m  * (X/ 100) * (Y / 100)
         else:
             val += m * (X / 100)
-        print(col)
-        print(val)
-    print('____________')
+
     return val
 #-----------------------------------------------------------------------------------------------------------------------
 def chemicalCalculation(test, weight, columns, ferro, assimilation):
@@ -162,15 +163,9 @@ def chemicalCalculation(test, weight, columns, ferro, assimilation):
     for i in columns[:4]+columns[30:32:1]:
         calculation.loc[0, i] = test.loc[0,i]
     for i in c:
-        print('_____________________________________________________________')
-        print(i)
         mass_element = __mass_element(ferro, assimilation, test, i)
         X1 = test.loc[0, 'VAL'+i.upper()]
         calculation.loc[0, i.upper()] = round((mass_element/(weight)*100 + X1), 3)
-        print('итог: ')
-        print(mass_element, '  ',  weight, '  ',  mass_element/(weight))
-        print(mass_element/(weight) + X1)
-        print(X1)
 
     return calculation
 #-----------------------------------------------------------------------------------------------------------------------

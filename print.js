@@ -1,4 +1,4 @@
-﻿var listEl = ["C","Si","Mn","P","S","Al","Cu","Cr","Mo","Ni","V","Ti","Nb","Ca","Co","W","B","As","Sn","N","Cэ"];
+﻿var listEl = ["C","Si","Mn","P","S","Al","Cu","Cr","Mo","Ni","V","Ti","Nb","Ca","Co","W","B","As","Sn","N","Cэ","T, °C"];
 
 var el = document.getElementById("el");
 var elLab = document.getElementById("elLab");
@@ -28,6 +28,7 @@ var timeSortTdT = document.getElementById("timeSortT");
 //--------------------------------------------------------------------------------
 function CreateElement()
 {
+    elLab.style.borderColor ="white";
   for (var i = 0; i < listEl.length; i++)
   {
     var newElement = document.createElement('td');
@@ -35,10 +36,12 @@ function CreateElement()
     newElement.textContent = listEl[i];
     newElement.style.backgroundColor = "skyblue";
 
+    if (i < listEl.length - 1) {
     newElement = document.createElement('td');
     elLab.appendChild(newElement);
     newElement.textContent = listEl[i];
     newElement.style.backgroundColor = "skyblue";
+    }  
   
     newElement = document.createElement('td');
     elMin.appendChild(newElement);
@@ -317,8 +320,9 @@ function PrintM()
   PrintP();
   //alert('P');
   if (localData.length > 0) {
+    var x = plotTime[0][plotTime[0].length-1];
     for (var i = 1; i < localData.length; i++) {
-      var x = plotTime[0][plotTime[0].length-1];
+      
       modElem[i-1].textContent = "";
       modElem[i-1].style.backgroundColor = "white";
 
@@ -330,6 +334,9 @@ function PrintM()
       if (localData[i][3] >= 0 && i > 0) {maxElem[i-1].textContent = localData[i][3];} else {maxElem[i-1].textContent = "";}//+localData[i][0]
       if (localData[i][5] >= 0 && i > 0) {tarElem[i-1].textContent = localData[i][5];} else {tarElem[i-1].textContent = "";}//+localData[i][0]
     }
+    //if (startTime > 0) {      
+      if (localData[0][1] > 0) {modElem[modElem.length-1].textContent = localData[0][1];}//+localData[i][0];}
+    //}
   }
   if (localDataC.length > 0) {
     for (var i = 1; i < localDataC.length; i++) {

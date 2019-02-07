@@ -4,15 +4,19 @@ pd.options.display.max_columns = 100
 pd.options.display.max_rows = 100
 import time
 import sys
-sys.path.append('C:/Users/Mikhail.Ilinykh/Desktop/new2_exp/libraries')
+
+config = pd.read_csv(r'config.dat', sep='=')
+config['Описание'] = pd.core.strings.str_strip(config['Описание'])
+config['Значение'] = pd.core.strings.str_strip(config['Значение'])
+dir = config[config['Описание'] == 'Путь к проекту']['Значение'].values[0]
+sys.path.append(dir+'libraries')
 from oz import ToJS, DuctTape
 from sortFiles import getTwoLast, delUnnecessaryFiles, delVD
 from AddingFromTelegrams import addMelting, addWeightEAL, addMeasurementChemistry, addMainInformation, addWeight
-from models import add_models, predict, chemicalCalculation
+from models import add_models, predict, chemicalCalculation, predict_TEMP
 from save import save_for_verification, save_for_analysis
 
-def made_strings(name_dir, titles, mark, material, counter):
-
+def made_strings(name_dir, titles, mark, material, titles_for_temp, counter):
     all_params = pd.DataFrame(columns=titles)
     for i in titles[34:112:1]:
         all_params.loc[0, i] = 0
@@ -21,27 +25,27 @@ def made_strings(name_dir, titles, mark, material, counter):
     temperature = pd.DataFrame(columns=['Номер плавки', 'Время замера температуры', 'TEMP', 'Окисленность', 'Время начала плавки'])
     all_additive = pd.DataFrame(columns=['Время добавки', 'Код', 'Описание', 'Масса'])
     # удаляем файлы из папки VD
-    delVD(name_dir)
+    # delVD(name_dir)
 
     all_params = addMelting(all_params, name_dir, mark, counter)
     all_params = addWeightEAL(all_params, name_dir, counter)
     all_params, flag = addMeasurementChemistry(all_params, name_dir, counter)
-    all_params, all_params_chCals, temperature, all_additive = addMainInformation(all_params, name_dir, counter, temperature, all_additive, material, flag)
+    all_params, all_params_chCals, temperature, all_additive, for_temp, flag_temp = addMainInformation(all_params, name_dir, counter, temperature, all_additive, material, titles_for_temp, flag)
 
     him.loc[0, 'Время начала плавки'] = all_params.loc[0, 'Время начала плавки']
     if flag > 0:
         for i in titles[2:5:1] + titles[7:33:1]:
             him.loc[0, i] = all_params.loc[0, i]
 
-    return all_params, all_params_chCals, him, temperature, all_additive, flag
+    return all_params, all_params_chCals, him, temperature, all_additive, for_temp, flag, flag_temp
 
 # считываем модели и все необходимые файлы
-models = add_models()
-mark = pd.read_excel('C:/Users/Mikhail.Ilinykh/Desktop/new2_exp/files/mark.xlsx')
-material = pd.read_excel('C:/Users/Mikhail.Ilinykh/Desktop/new2_exp/files/material.xlsx')
-mean_chemical = pd.read_excel('C:/Users/Mikhail.Ilinykh/Desktop/new2_exp/files/mean_xim.xlsx')
-ferro = pd.read_excel('C:/Users/Mikhail.Ilinykh/Desktop/new2_exp/files/ferro.xlsx')
-assimilation = pd.read_excel('C:/Users/Mikhail.Ilinykh/Desktop/new2_exp/files/assimilation.xlsx')
+models = add_models(dir)
+mark = pd.read_excel(dir + 'files/mark.xlsx')
+material = pd.read_excel(dir + 'files/material.xlsx')
+mean_chemical = pd.read_excel(dir+'files/mean_xim.xlsx')
+ferro = pd.read_excel(dir+'files/ferro.xlsx')
+assimilation = pd.read_excel(dir+'files/assimilation.xlsx')
 ferro = ferro.fillna(0)
 assimilation = assimilation.fillna(100)
 
@@ -61,7 +65,7 @@ all_strings = pd.DataFrame(columns = all_titils)
 melting = ' '
 bool_temp = False
 counter = 0
-dir_name = '//TEST-ANACONDA/Ozon'
+dir_name = config[config['Описание'] == 'Путь к телеграммам']['Значение'].values[0]
 
 gT = DuctTape()
 
@@ -70,7 +74,7 @@ while (True):
     # him - последний замеры химии
     # all_temp - все замеры температуры
     # all_additive - все добавляемые материалы
-    one_object, one_object_chCals, him, all_temp, all_additive, flag = made_strings(dir_name, all_titils, mark, material, counter)
+    one_object, one_object_chCals, him, all_temp, all_additive, for_temp, flag, flag_temp = made_strings(dir_name, all_titils, mark, material, models['titles_TEMP'], counter)
     counter += 1
     if counter > 10:
         counter  = 0
@@ -109,11 +113,23 @@ while (True):
     else:
         pred = predict(models, one_object, columns, all_titils)
         pred_chCalc = chemicalCalculation(one_object_chCals, weight, columns, ferro, assimilation)
+    if flag_temp > 0:
+        pred = predict_TEMP(models, pred, for_temp)
+    # для отрисовки граффиков пока нет замеров химии
+    if flag == 0:
+        for i in columns[0:3] + columns[30:32]:
+            pred.loc[0, i] = one_object.loc[0, i]
+        for i in columns[4:30]:
+            if mean_chemical[mean_chemical['Марка стали'] == pred.loc[0, 'Марка стали']].shape[0] != 0:
+                pred.loc[0, i] = mean_chemical[mean_chemical['Марка стали'] == pred.loc[0, 'Марка стали']]['VAL' + i].values[0]
+            else:
+                pred.loc[0, i] = mean_chemical[mean_chemical['Марка стали'] == 'all_mean']['VAL' + i].values[0]
+        if flag_temp==0:
+            pred.loc[0, 'TEMP'] = -1
 
     all_object = pd.concat([all_object, pred])
     all_object['TEMP'] = all_object['TEMP'].astype(int)
     all_object.reset_index(inplace=True, drop=True)
-
     all_object_chCalc = pd.concat([all_object_chCalc, pred_chCalc])
     all_object_chCalc.reset_index(inplace=True, drop=True)
 
@@ -130,18 +146,6 @@ while (True):
     if all_temp.shape[0] > 0:
         all_temp['TEMP'] = all_temp['TEMP'].astype(int)
         graph.setTemp(all_temp)
-
-    # для отрисовки граффиков пока нет замеров химии
-    if flag == 0:
-        for i in columns[0:4:1] + columns[30:32:1]:
-            all_object.loc[0, i] = one_object.loc[0, i]
-        for i in columns[4:30:1]:
-            if mean_chemical[mean_chemical['Марка стали'] == all_object.loc[0, 'Марка стали']].shape[0] != 0:
-                all_object.loc[0, i] = mean_chemical[mean_chemical['Марка стали'] == all_object.loc[0, 'Марка стали']]['VAL' + i].values[0]
-            else:
-                all_object.loc[0, i] = mean_chemical[mean_chemical['Марка стали'] == 'all_mean']['VAL' + i].values[0]
-        if pd.isnull(all_object.loc[0, 'TEMP']):
-            all_object.loc[0, 'TEMP'] = mean_chemical[mean_chemical['Марка стали'] == 'all_mean']['TEMP'].values[0]
 
     graph.setLine(all_object)
     all_object_chCalc = all_object_chCalc.fillna(-1)
