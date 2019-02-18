@@ -219,6 +219,7 @@ class ToJS():
         df = tdf.copy()
         df['Продолжительность'] = df['Время замера температуры'] - df['Время начала плавки']
         df['t, сек.'] = df['Продолжительность'].astype(pd.Timedelta).apply(lambda l: l.seconds)
+        df = df.fillna(-1)
         df.reset_index(inplace=True, drop=True)
         # print(df)
         return df
@@ -254,6 +255,7 @@ class ToJS():
         tempY = []
         tempYreal = []
         tempXreal = []
+        tempO = []
         # ---пересчет масштаба--------
         if num > 0:
             for j in header:
@@ -558,6 +560,7 @@ class ToJS():
 
             for i in range(self.dataTemp.shape[0]):
                 y = self.dataTemp['TEMP'][i]
+                o = self.dataTemp['Окисленность'][i]
                 if y < 3000:
                     tempY.append(str(int(np.around(C0 + (-y * scC), decimals=0))))
                     x = self.dataTemp['t, сек.'][i]
@@ -569,7 +572,7 @@ class ToJS():
                     if k > 0:
                         timeTmp = timeTmp[:k]
                     tempXreal.append(str(timeTmp))
-
+                    tempO.append(str(o))
         # -----запись---------
         # ----liquidus-------------------------------------------
         if self.dataPoint.shape[0] > 0:
@@ -694,10 +697,10 @@ class ToJS():
 
         tmpStr = tmpStr + '\nvar tempPoint = ['
         if len(tempX) > 0:
-            tmpStr = tmpStr + '[' + tempX[0] + ',' + tempY[0] + ',' + tempYreal[0] + ',"' + tempXreal[0] + '"]'
+            tmpStr = tmpStr + '[' + tempX[0] + ',' + tempY[0] + ',' + tempYreal[0] + ',"' + tempXreal[0] + '",' + tempO[0] + ']'
 
             for i in range(1, len(tempX)):
-                tmpStr = tmpStr + ',[' + tempX[i] + ',' + tempY[i] + ',' + tempYreal[i] + ',"' + tempXreal[i] + '"]'
+                tmpStr = tmpStr + ',[' + tempX[i] + ',' + tempY[i] + ',' + tempYreal[i] + ',"' + tempXreal[i] + '",' + tempO[i] + ']'
         tmpStr = tmpStr + '];'
         # масштаб
         tmpStr = tmpStr + '\nvar scale = ['
@@ -758,9 +761,7 @@ class ToJS():
         self.dataPoint = self.preparePoint(dataPoint)
 
     # -------------------------------------------------------
-    def setTemp(self, dataTemp=pd.DataFrame(
-        {'Номер плавки': pd.Series(), 'Время замера температуры': pd.Series(), 'TEMP': pd.Series(),
-         'Время начала плавки': pd.Series()})):
+    def setTemp(self, dataTemp):
         self.dataTemp = self.prepareTemp(dataTemp)
 
     # -------------------------------------------------------

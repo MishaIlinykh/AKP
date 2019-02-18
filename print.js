@@ -236,6 +236,12 @@ function AddT(tab,i)
       newEl.textContent = tempPoint[i][2];
       newEl.classList.add('tc');
 
+      var newEl = document.createElement('td');      
+      newTr.appendChild(newEl);
+      if (tempPoint[i][4] >= 0) {newEl.textContent = tempPoint[i][4];}
+      else {newEl.textContent = "";}
+      newEl.classList.add('tc');      
+
       tab.appendChild(newTr);
 }
 //--------------------------------------------------------------------------------
@@ -334,9 +340,11 @@ function PrintM()
       if (localData[i][3] >= 0 && i > 0) {maxElem[i-1].textContent = localData[i][3];} else {maxElem[i-1].textContent = "";}//+localData[i][0]
       if (localData[i][5] >= 0 && i > 0) {tarElem[i-1].textContent = localData[i][5];} else {tarElem[i-1].textContent = "";}//+localData[i][0]
     }
-    //if (startTime > 0) {      
-      if (localData[0][1] > 0) {modElem[modElem.length-1].textContent = localData[0][1];}//+localData[i][0];}
-    //}
+//    if (startTime > 0) {
+//      if (x >= startTime) {modElem[modElem.length-1].textContent = localData[0][1];}//+localData[i][0];}
+//    }
+    if (localData[0][1] > 0) {modElem[modElem.length-1].textContent = localData[0][1];}//+localData[i][0];}
+    else {modElem[modElem.length-1].textContent = "";}
   }
   if (localDataC.length > 0) {
     for (var i = 1; i < localDataC.length; i++) {

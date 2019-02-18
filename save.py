@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 import os, stat
 #-----------------------------------------------------------------------------------------------------------------------
-def save_for_verification(data, data_him):
-    direct = 'C:/Users/Anastasiya.Mittseva/Desktop/AKP/new2_exp/save/' + data.loc[0, 'Номер плавки']
+def save_for_verification(data, data_him, dir):
+    direct = dir + 'save/' + data.loc[0, 'Номер плавки']
     if os.path.exists(direct) == False:
         os.mkdir(direct)
     data.to_excel(direct + '/all.xls')
@@ -44,9 +44,8 @@ def save_for_verification(data, data_him):
     #
     # except FileNotFoundError:
     #     df_save.to_excel(dir)
-
 #-----------------------------------------------------------------------------------------------------------------------
-def save_for_analysis(data_object, data_him):
+def save_for_analysis(data_object, data_him, dir, file_name):
     col = ['Номер плавки', 'Марка стали', 'Время замера', 'Время предсказания',
            'C_real','C_pr', 'SI_real', 'SI_pr', 'MN_real','MN_pr', 'P_real', 'P_pr', 'S_real', 'S_pr',
            'AL_real', 'AL_pr', 'ALS_real', 'ALS_pr', 'CU_real', 'CU_pr', 'CR_real', 'CR_pr',
@@ -70,17 +69,80 @@ def save_for_analysis(data_object, data_him):
         for columns in col[5::2]:
             df_save.loc[i, columns] = temp.loc[0, columns[:-3]]
 
-    dir = 'C:/Users/Anastasiya.Mittseva/Desktop/AKP/new2/save/save_for_analysis.xlsx'
+    dir = dir + '/save/' + file_name+ '.xlsx'
     try:
         df = pd.read_excel(dir)
-        # for i in set(df.columns).difference(df_save.columns):
-        #     df_save[i] = 0
-        # for i in set(df_save.columns).difference(df.columns):
-        #     df[i] = 0
-        # df_save = df_save[df.columns]
         df = pd.concat([df, df_save])
         df.to_excel(dir)
 
     except FileNotFoundError:
         df_save.to_excel(dir)
 #-----------------------------------------------------------------------------------------------------------------------
+def save_for_analysis_temp(data_object, data_temp, dir):
+    col = ['Номер плавки', 'Марка стали', 'Время замера', 'Время предсказания',
+           'TEMP_real', 'TEMP_pr']
+    df_save = pd.DataFrame(columns=col)
+
+    for i in range(1, data_temp.shape[0]):
+        time = data_temp.loc[i, 'Время замера температуры']
+        temp = data_object[data_object['Время'] == min(data_object.Время, key=lambda datetime: abs(time - datetime))]
+        temp.reset_index(inplace=True, drop=True)
+        df_save.loc[i, 'Номер плавки'] = temp.loc[0, 'Номер плавки']
+        df_save.loc[i, 'Марка стали'] = temp.loc[0, 'Марка стали']
+        df_save.loc[i, 'Время замера'] = time
+        df_save.loc[i, 'Время предсказания'] = temp.loc[0, 'Время']
+        df_save.loc[i, 'TEMP_real'] = data_temp.loc[i, 'TEMP']
+        df_save.loc[i, 'TEMP_pr'] = temp.loc[0, 'TEMP']
+
+    dir = dir + '/save/' + 'save_for_analysis_temp' + '.xlsx'
+    try:
+        df = pd.read_excel(dir)
+        df = pd.concat([df, df_save])
+        df.to_excel(dir)
+
+    except FileNotFoundError:
+        df_save.to_excel(dir)
+#-----------------------------------------------------------------------------------------------------------------------
+def __auxiliary_function(additive, fer, el, ferro):
+    for i in additive['Описание'].value_counts().index:
+        if i == fer:
+            continue
+        if ferro[ferro['Описание'] == i][el].values[0] > 5:
+            return True
+    return False
+#-----------------------------------------------------------------------------------------------------------------------
+def save_assimilation_coef(additive, weight, data_him, ferro, assimilation, dir, flag):
+    df = pd.read_excel(dir+'files/assimilation_add.xlsx')
+    additive = additive[(additive['Время добавки'] > data_him.loc[flag-2, 'Последний замер химии']) & (additive['Время добавки'] < data_him.loc[flag-1, 'Последний замер химии'])]
+    # Химические элементы, для которых расчитываеться коэффицент усвоения
+    xim_el =['Nb', 'Mo', 'V', 'Ca', 'Al', 'S',
+        'C', 'Si', 'Mn', 'Cr', 'Ti', 'Ni']
+    for el in xim_el:
+        # Перебираем все добавленные материалы
+        for fer in additive['Описание'].value_counts().index:
+            # не считаем для шлакообразующих
+            if ferro[ferro['Описание'] == fer]['Шлакообразующий'].values[0] == 1:
+                continue
+            # не считаем если содержание элемента в материале низкое
+            if ferro[ferro['Описание'] == fer][el].values[0] < 10:
+                continue
+            # не считаем если элемент значительно содержиться в другом материале
+            if __auxiliary_function(additive, fer, el, ferro) == True:
+                continue
+            # находим массу добавляемого материала
+            m = sum(additive[additive['Описание'] == fer]['Масса'])
+            # Рассчитываем коэффицент усвоения
+            X1 = data_him.loc[flag-2, 'VAL'+el.upper()]
+            X2 = data_him.loc[flag-1, 'VAL'+el.upper()]
+            X = ferro[ferro['Описание'] == fer][el].values[0]
+            Y = (X2-X1)*weight*100/(m*X)
+
+            # не сохраняем если усвоение сильно отличаеться от табличного
+            Y_coef = assimilation[assimilation['Описание'] == fer][el].values[0]
+            if abs(Y-Y_coef) > Y*0.2:
+                continue
+            df.loc[df['Описание'] == fer, el] = Y
+            break
+    df.to_excel(dir+'files/assimilation_add.xlsx')
+
+

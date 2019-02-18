@@ -127,6 +127,36 @@ def predict_TEMP(models, df, for_temp):
     print('TEMP: ', round(models['TEMP2'].predict(test_temp)[0]))
     return df
 #-----------------------------------------------------------------------------------------------------------------------
+def __mass_element_newCoef(ferro, assimilation, assimilation_add, test, element):
+    val = 0
+    a = ['Nb', 'Mo', 'V', 'Ca', 'Al', 'S',
+         'C', 'Si', 'Mn', 'Cr', 'Ti', 'Ni']
+    c = []
+    for i in test.columns[34:112]:
+        c.append(i)
+    for i in test.columns[114:]:
+        c.append(i)
+
+    for col in c:
+        if test.loc[0, col] <= 0:
+            continue
+        col = col[:-1]
+        if ferro[ferro['Описание'] == col]['Шлакообразующий'].values[0] == 1:
+            continue
+        m = test.loc[0, col + '2']
+        X = ferro[ferro['Описание'] == col][element].values[0]
+        if X == 0:
+            continue
+        if any(element in s for s in a):
+            if assimilation_add[assimilation_add['Описание'] == col][element].values[0] == -1:
+                Y = assimilation[assimilation['Описание'] == col][element].values[0]
+            else:
+                Y = assimilation_add[assimilation_add['Описание'] == col][element].values[0]
+            val += m  * (X/ 100) * (Y / 100)
+        else:
+            val += m * (X / 100)
+    return val
+#-----------------------------------------------------------------------------------------------------------------------
 def __mass_element(ferro, assimilation, test, element):
     val = 0
     a = ['Nb', 'Mo', 'V', 'Ca', 'Al', 'S',
@@ -155,7 +185,7 @@ def __mass_element(ferro, assimilation, test, element):
 
     return val
 #-----------------------------------------------------------------------------------------------------------------------
-def chemicalCalculation(test, weight, columns, ferro, assimilation):
+def chemicalCalculation(test, weight, columns, ferro, assimilation, assimilation_add, reference):
     # X2 = (Y*m*X) / (M*1,0201*100) + X1
     calculation = pd.DataFrame(columns=columns)
     c = ['C', 'Si', 'Mn', 'Al', 'Cu', 'Cr',
@@ -163,7 +193,10 @@ def chemicalCalculation(test, weight, columns, ferro, assimilation):
     for i in columns[:4]+columns[30:32:1]:
         calculation.loc[0, i] = test.loc[0,i]
     for i in c:
-        mass_element = __mass_element(ferro, assimilation, test, i)
+        if reference == 'chCalc_newCoef':
+            mass_element = __mass_element_newCoef(ferro, assimilation, assimilation_add, test, i)
+        else:
+            mass_element = __mass_element(ferro, assimilation, test, i)
         X1 = test.loc[0, 'VAL'+i.upper()]
         calculation.loc[0, i.upper()] = round((mass_element/(weight)*100 + X1), 3)
 
