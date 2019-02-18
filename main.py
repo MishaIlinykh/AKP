@@ -10,27 +10,37 @@ dir = config[config['Описание'] == 'Путь к проекту']['Зна
 sys.path.append(dir+'libraries')
 from oz import ToJS, DuctTape
 from sortFiles import getTwoLast, delUnnecessaryFiles, delVD
-from AddingFromTelegrams import addMelting, addWeightEAL, addMeasurementChemistry, addMainInformation, addWeight
+from AddingFromTelegrams import addMelting, addWeightEAL, addMeasurementChemistry, addMainInformation, addWeight, addChemistry
 from models import add_models, predict, chemicalCalculation, predict_TEMP
 from save import save_for_verification, save_for_analysis, save_assimilation_coef, save_for_analysis_temp
 
-def made_strings(name_dir, titles, mark, material, titles_for_temp, counter, melting):
+def made_strings(name_dir, titles, mark, material, titles_for_temp, counter, graph):
+
+
     all_params = pd.DataFrame(columns=titles)
     for i in titles[34:112:1]:
         all_params.loc[0, i] = 0
 
     temperature = pd.DataFrame(columns=['Номер плавки', 'Время замера температуры', 'TEMP', 'Окисленность', 'Время начала плавки'])
     all_additive = pd.DataFrame(columns=['Время добавки', 'Код', 'Описание', 'Масса'])
-    # удаляем файлы из папки VD
-    delVD(name_dir)
 
+    # Находим новую плавку
     all_params = addMelting(all_params, name_dir, mark, counter)
-    all_params = addWeightEAL(all_params, name_dir, counter)
-    all_params, him, flag = addMeasurementChemistry(all_params, name_dir, counter, titles)
-    all_params, all_params_chCals, temperature, all_additive, for_temp, flag_temp = addMainInformation(all_params, name_dir, counter, temperature, all_additive, material, titles_for_temp, flag)
-
+    # Замеры химии по данной плавке
+    him, flag = addChemistry(all_params, name_dir, titles)
     for i in range(him.shape[0]):
         him.loc[i, 'Время начала плавки'] = all_params.loc[0, 'Время начала плавки']
+
+    if flag > 0:
+        graph.setPoint(him)
+
+
+    # удаляем файлы из папки VD
+    # delVD(name_dir)
+
+    all_params = addWeightEAL(all_params, name_dir, counter)
+    all_params = addMeasurementChemistry(all_params, name_dir, counter, flag)
+    all_params, all_params_chCals, temperature, all_additive, for_temp, flag_temp = addMainInformation(all_params, name_dir, counter, temperature, all_additive, material, titles_for_temp, flag)
 
     return all_params, all_params_chCals, him, temperature, all_additive, for_temp, flag, flag_temp
 
@@ -60,21 +70,22 @@ all_object = pd.DataFrame(columns=columns)
 all_strings = pd.DataFrame(columns = all_titils)
 melting = ' '
 bool_temp = False
-counter = 0
+counter = 1
 dir_name = config[config['Описание'] == 'Путь к телеграммам']['Значение'].values[0]
 
 gT = DuctTape()
 
 while (True):
+    graph = ToJS()
     # one_object - одна строка, которая учасвует в предсказании
     # him - последний замеры химии
     # all_temp - все замеры температуры
     # all_additive - все добавляемые материалы
-    one_object, one_object_chCals, all_him, all_temp, all_additive, for_temp, flag, flag_temp = made_strings(dir_name, all_titils, mark, material, models['titles_TEMP'], counter, melting)
+    one_object, one_object_chCals, all_him, all_temp, all_additive, for_temp, flag, flag_temp = made_strings(dir_name, all_titils, mark, material, models['titles_TEMP'], counter, graph)
 
-    counter += 1
-    if counter > 10:
-        counter  = 0
+    # counter += 1
+    # if counter > 10:
+    #     counter  = 0
 
     if melting != one_object.loc[0, 'Номер плавки']:
 
@@ -100,7 +111,8 @@ while (True):
 
         #Находим массу металла
         weight = addWeight(dir_name, melting)
-
+    if weight == 130000:
+        weight = addWeight(dir_name, melting)
 
     all_strings = pd.concat([all_strings, one_object])
     all_strings.reset_index(inplace=True, drop=True)
@@ -147,7 +159,7 @@ while (True):
             assimilation_add = pd.read_excel(dir + 'files/assimilation_add.xlsx')
             assimilation_add = assimilation_add.fillna(-1)
 
-    graph = ToJS()
+    # graph = ToJS()
     graph.setNow(one_object.loc[0, 'Время начала плавки'], one_object.loc[0, 'Время'])
 
     if flag > 0:

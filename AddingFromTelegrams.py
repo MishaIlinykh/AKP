@@ -94,8 +94,52 @@ def addWeightEAL(dataFrame, name_dir, counter):
 
     return dataFrame
 #-----------------------------------------------------------------------------------------------------------------------
-def addMeasurementChemistry(dataFrame, name_dir, counter, titles):
+def addChemistry(dataFrame, name_dir, titles):
+
     him = pd.DataFrame(columns=titles[2:5:1] + titles[7:33:1] + ['Время начала плавки'])
+    melting = dataFrame.loc[0, 'Номер плавки']
+    Lab, Lab_dop = getTwoLast(name_dir + '/LAB')
+    tel_chemical = open_DF(name_dir + '/LAB/' + Lab)
+    tel_chemical = tel_chemical[(tel_chemical[22] == 'L1') & (tel_chemical[11] == melting + '  ')]
+
+    # добавляем дополнительный файл
+    if Lab_dop != None:
+        tel_chemical_dop = open_DF(name_dir + '/LAB/' + Lab_dop)
+        tel_chemical_dop = tel_chemical_dop[(tel_chemical_dop[22] == 'L1') & (tel_chemical_dop[11] == melting + '  ')]
+        tel_chemical = pd.concat([tel_chemical, tel_chemical_dop])
+    tel_chemical.reset_index(inplace=True, drop=True)
+
+    xim = {'VALC': 33, 'VALSI': 34, 'VALMN': 35, 'VALP': 36, 'VALS': 37, 'VALAL': 38, 'VALALS': 39, 'VALCU': 40,
+           'VALCR': 41, 'VALMO': 42, 'VALNI': 43, 'VALV': 44, 'VALTI': 45, 'VALNB': 46, 'VALCA': 47, 'VALCO': 48,
+           'VALPB': 49, 'VALW': 50, 'VALCE': 52, 'VALB': 53, 'VALAS': 54, 'VALSN': 55, 'VALBI': 56, 'VALZR': 58,
+           'VALO': 59, 'VALN': 60}
+
+    # проверяем колличесво замеров химии
+    flag = tel_chemical.shape[0]
+    if flag > 0:
+        for i in range(tel_chemical.shape[0]):
+            if len(tel_chemical.iloc[i, 13]) < 3:
+                time_xim = datetime(int('20' + tel_chemical.iloc[i, 13]), int(tel_chemical.iloc[i, 14]),
+                                    int(tel_chemical.iloc[i, 15]), int(tel_chemical.iloc[i, 16]),
+                                    int(tel_chemical.iloc[i, 17]), int(tel_chemical.iloc[i, 18]))
+            else:
+                time_xim = datetime(int(tel_chemical.iloc[i, 13]), int(tel_chemical.iloc[i, 14]),
+                                    int(tel_chemical.iloc[i, 15]), int(tel_chemical.iloc[i, 16]),
+                                    int(tel_chemical.iloc[i, 17]), int(tel_chemical.iloc[i, 18]))
+
+            tel_chemical.loc[i, 'data_time'] = time_xim
+        for i in range(tel_chemical.shape[0]):
+            for j in titles[7:33]:
+                him.loc[i, j] = round(float(tel_chemical.iloc[i, xim[j]]), 4)
+            him.loc[i, 'Последний замер химии'] = tel_chemical.iloc[i, 74]
+
+    him['Марка стали'] = dataFrame.loc[0, 'Марка стали']
+    him['m'] = dataFrame.loc[0, 'm']
+    him.reset_index(inplace=True, drop=True)
+
+    return him, flag
+# -----------------------------------------------------------------------------------------------------------------------
+def addMeasurementChemistry(dataFrame, name_dir, counter, flag):
     melting = dataFrame.loc[0, 'Номер плавки']
     Lab, Lab_dop = getTwoLast(name_dir + '/LAB')
     tel_chemical = open_DF(name_dir + '/LAB/' + Lab)
@@ -111,9 +155,6 @@ def addMeasurementChemistry(dataFrame, name_dir, counter, titles):
     # удаляем файлы
     if counter == 0:
         delUnnecessaryFiles(name_dir + '/LAB')
-
-    # проверяем колличесво замеров химии
-    flag = tel_chemical.shape[0]
 
     if flag > 0:
         for i in range(tel_chemical.shape[0]):
@@ -147,18 +188,7 @@ def addMeasurementChemistry(dataFrame, name_dir, counter, titles):
         t = dataFrame.iloc[0, 0] - dataFrame.iloc[0, 3]
         dataFrame.loc[0, 'time'] = round(t.seconds / 60)
 
-    if flag > 0:
-        for i in range(tel_chemical.shape[0]):
-            for j in titles[7:33]:
-                him.loc[i, j] = round(float(tel_chemical.iloc[i, xim[j]]), 4)
-            him.loc[i, 'Последний замер химии'] = tel_chemical.iloc[i, 74]
-
-    # him['Время начала плавки'] = dataFrame.loc[0, 'Время начала плавки']
-    him['Марка стали'] = dataFrame.loc[0, 'Марка стали']
-    him['m'] = dataFrame.loc[0, 'm']
-    him.reset_index(inplace=True, drop=True)
-
-    return dataFrame, him, flag
+    return dataFrame
 #-----------------------------------------------------------------------------------------------------------------------
 def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, material, titles_for_temp, flag):
     signal_t = 'LFL211'
