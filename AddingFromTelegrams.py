@@ -1,5 +1,5 @@
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from libraries.sortFiles import getTwoLast, delUnnecessaryFiles, open_DF
 #-----------------------------------------------------------------------------------------------------------------------
 def addMelting(dataFrame, name_dir, mark, counter):
@@ -12,9 +12,9 @@ def addMelting(dataFrame, name_dir, mark, counter):
         tel_grade_dop = open_DF(name_dir + '/LF_OUT/' + LF_TlgSender_dop)
         tel_grade = tel_grade_dop.copy()
 
-    # # удаляем файлы
-    # if counter == 0:
-    #     delUnnecessaryFiles(name_dir + '/LF_OUT')
+    # удаляем файлы
+    if counter == 0:
+        delUnnecessaryFiles(name_dir + '/LF_OUT')
 
     # извлекаем номер плавки, марку стали, время начала плавки
     tel_grade = tel_grade[tel_grade[3] == signal_st]
@@ -78,9 +78,9 @@ def addWeightEAL(dataFrame, name_dir, counter):
         tel_EAF = pd.concat([tel_EAF_dop, tel_EAF])
     tel_EAF.reset_index(inplace=True, drop=True)
 
-    # # удаляем файлы
-    # if counter ==0:
-    #     delUnnecessaryFiles(name_dir + '/EAF')
+    # удаляем файлы
+    if counter ==0:
+        delUnnecessaryFiles(name_dir + '/EAF')
 
     # находим массут добавок на ДСП
     m = 0
@@ -94,7 +94,9 @@ def addWeightEAL(dataFrame, name_dir, counter):
 
     return dataFrame
 #-----------------------------------------------------------------------------------------------------------------------
-def addMeasurementChemistry(dataFrame, name_dir, counter):
+def addChemistry(dataFrame, name_dir, titles):
+
+    him = pd.DataFrame(columns=titles[2:5:1] + titles[7:33:1] + ['Время начала плавки'])
     melting = dataFrame.loc[0, 'Номер плавки']
     Lab, Lab_dop = getTwoLast(name_dir + '/LAB')
     tel_chemical = open_DF(name_dir + '/LAB/' + Lab)
@@ -107,12 +109,52 @@ def addMeasurementChemistry(dataFrame, name_dir, counter):
         tel_chemical = pd.concat([tel_chemical, tel_chemical_dop])
     tel_chemical.reset_index(inplace=True, drop=True)
 
-    # # удаляем файлы
-    # if counter == 0:
-    #     delUnnecessaryFiles(name_dir + '/LAB')
+    xim = {'VALC': 33, 'VALSI': 34, 'VALMN': 35, 'VALP': 36, 'VALS': 37, 'VALAL': 38, 'VALALS': 39, 'VALCU': 40,
+           'VALCR': 41, 'VALMO': 42, 'VALNI': 43, 'VALV': 44, 'VALTI': 45, 'VALNB': 46, 'VALCA': 47, 'VALCO': 48,
+           'VALPB': 49, 'VALW': 50, 'VALCE': 52, 'VALB': 53, 'VALAS': 54, 'VALSN': 55, 'VALBI': 56, 'VALZR': 58,
+           'VALO': 59, 'VALN': 60}
 
     # проверяем колличесво замеров химии
     flag = tel_chemical.shape[0]
+    if flag > 0:
+        for i in range(tel_chemical.shape[0]):
+            if len(tel_chemical.iloc[i, 13]) < 3:
+                time_xim = datetime(int('20' + tel_chemical.iloc[i, 13]), int(tel_chemical.iloc[i, 14]),
+                                    int(tel_chemical.iloc[i, 15]), int(tel_chemical.iloc[i, 16]),
+                                    int(tel_chemical.iloc[i, 17]), int(tel_chemical.iloc[i, 18]))
+            else:
+                time_xim = datetime(int(tel_chemical.iloc[i, 13]), int(tel_chemical.iloc[i, 14]),
+                                    int(tel_chemical.iloc[i, 15]), int(tel_chemical.iloc[i, 16]),
+                                    int(tel_chemical.iloc[i, 17]), int(tel_chemical.iloc[i, 18]))
+
+            tel_chemical.loc[i, 'data_time'] = time_xim
+        for i in range(tel_chemical.shape[0]):
+            for j in titles[7:33]:
+                him.loc[i, j] = round(float(tel_chemical.iloc[i, xim[j]]), 4)
+            him.loc[i, 'Последний замер химии'] = tel_chemical.iloc[i, 74]
+
+    him['Марка стали'] = dataFrame.loc[0, 'Марка стали']
+    him['m'] = dataFrame.loc[0, 'm']
+    him.reset_index(inplace=True, drop=True)
+
+    return him, flag
+# -----------------------------------------------------------------------------------------------------------------------
+def addMeasurementChemistry(dataFrame, name_dir, counter, flag):
+    melting = dataFrame.loc[0, 'Номер плавки']
+    Lab, Lab_dop = getTwoLast(name_dir + '/LAB')
+    tel_chemical = open_DF(name_dir + '/LAB/' + Lab)
+    tel_chemical = tel_chemical[(tel_chemical[22] == 'L1') & (tel_chemical[11] == melting + '  ')]
+
+    # добавляем дополнительный файл
+    if Lab_dop != None:
+        tel_chemical_dop = open_DF(name_dir + '/LAB/' + Lab_dop)
+        tel_chemical_dop = tel_chemical_dop[(tel_chemical_dop[22] == 'L1') & (tel_chemical_dop[11] == melting + '  ')]
+        tel_chemical = pd.concat([tel_chemical, tel_chemical_dop])
+    tel_chemical.reset_index(inplace=True, drop=True)
+
+    # удаляем файлы
+    if counter == 0:
+        delUnnecessaryFiles(name_dir + '/LAB')
 
     if flag > 0:
         for i in range(tel_chemical.shape[0]):
@@ -134,9 +176,9 @@ def addMeasurementChemistry(dataFrame, name_dir, counter):
                'VALCR': 41, 'VALMO': 42, 'VALNI': 43, 'VALV': 44, 'VALTI': 45, 'VALNB': 46, 'VALCA': 47, 'VALCO': 48,
                'VALPB': 49, 'VALW': 50, 'VALCE': 52, 'VALB': 53, 'VALAS': 54, 'VALSN': 55, 'VALBI': 56, 'VALZR': 58,
                'VALO': 59, 'VALN': 60}
-        titles = ['VALC','VALSI','VALMN','VALP','VALS','VALAL','VALALS','VALCU','VALCR','VALMO','VALNI','VALV','VALTI',
+        t = ['VALC','VALSI','VALMN','VALP','VALS','VALAL','VALALS','VALCU','VALCR','VALMO','VALNI','VALV','VALTI',
                   'VALNB','VALCA','VALCO','VALPB','VALW','VALCE','VALB','VALAS','VALSN','VALBI','VALZR','VALO','VALN']
-        for x_el in titles:
+        for x_el in t:
             dataFrame.loc[0, x_el] = round(float(tel_chemical.iloc[ind_ch, xim[x_el]]), 4)
 
         # время замера химии
@@ -146,7 +188,7 @@ def addMeasurementChemistry(dataFrame, name_dir, counter):
         t = dataFrame.iloc[0, 0] - dataFrame.iloc[0, 3]
         dataFrame.loc[0, 'time'] = round(t.seconds / 60)
 
-    return dataFrame, flag
+    return dataFrame
 #-----------------------------------------------------------------------------------------------------------------------
 def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, material, titles_for_temp, flag):
     signal_t = 'LFL211'
@@ -170,9 +212,9 @@ def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, 
         tel_main = pd.concat([tel_main_dop, tel_main])
     tel_main.reset_index(inplace=True, drop=True)
 
-    # # удаляем файлы
-    # if counter ==0:
-    #     delUnnecessaryFiles(name_dir + '/LF')
+    # удаляем файлы
+    if counter ==0:
+        delUnnecessaryFiles(name_dir + '/LF')
 
     # добавляем время в нужном формате
     for i in range(tel_main.shape[0]):
@@ -192,7 +234,7 @@ def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, 
         temperature.loc[i, 'TEMP'] = temp.loc[i, 24]
         temperature.loc[i, 'Время начала плавки'] = dataFrame.loc[0, 'Время начала плавки']
         if temp.loc[i, 23] == '2':
-            temperature.loc[i, 'Окисленность'] = temp.loc[i, 25]
+            temperature.loc[i, 'Окисленность'] = int(temp.loc[i, 25])/1000
         else:
             temperature.loc[i, 'Окисленность'] = None
 
