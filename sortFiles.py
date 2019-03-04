@@ -57,60 +57,47 @@ def getListDirDesc(dirPath):
     return l
 #-----------------------------------------------------------------------------------------------------------------------
 def getTwoLast(dirPath):
-    while True:
-        try:
-            l = []
-            r1 = None
-            r2 = None
-            lin1 = ""
-            if os.path.exists(dirPath):
-                l = getListDirDesc(dirPath)
-                dir0 = []
-                for f in l:
-                    if __getFileSize(os.path.join(dirPath,f)) == 0:
-                        dir0.append(f)
-                for f in dir0:
+    l = []
+    r1 = None
+    r2 = None
+    lin1 = ""
+    if os.path.exists(dirPath):
+        l = getListDirDesc(dirPath)
+        dir0 = []
+        for f in l:
+            if __getFileSize(os.path.join(dirPath,f)) == 0:
+                dir0.append(f)
+        for f in dir0:
+            try:
+                l.remove(f)
+            except ValueError:
+                pass
+        
+        if len(l)>0:
+            r1 = l[0]
+            while True:
+                try:
+                    file = open(os.path.join(dirPath,r1), 'r' )
+                    lin1 = file.readline()
+                    file.close()
+                    break
+                except Exception:
+                    pass
+            l.remove(r1)
+            
+        if len(l)>0:
+            for f in l:
+                while True:
                     try:
-                        l.remove(f)
-                    except ValueError:
+                        file = open(os.path.join(dirPath,f), 'r' )
+                        linTmp = file.readline()
+                        file.close()
+                        break
+                    except Exception:
                         pass
-
-                if len(l)>0:
-                    r1 = l[0]
-                    while True:
-                            file = open(os.path.join(dirPath,r1), 'r' )
-                            lin1 = file.readline()
-                            file.close()
-                            break
-                        # try:
-                        #     file = open(os.path.join(dirPath,r1), 'r' )
-                        #     lin1 = file.readline()
-                        #     file.close()
-                        #     break
-                        # except Exception:
-                        #     pass
-                    l.remove(r1)
-
-                if len(l)>0:
-                    for f in l:
-                        while True:
-                            file = open(os.path.join(dirPath, f), 'r')
-                            linTmp = file.readline()
-                            file.close()
-                            break
-                            # try:
-                            #     file = open(os.path.join(dirPath,f), 'r' )
-                            #     linTmp = file.readline()
-                            #     file.close()
-                            #     break
-                            # except Exception:
-                            #     pass
-                        if lin1 != linTmp:
-                            r2 = f
-                            break
-            break
-        except Exception:
-            r1, r2 = getTwoLast(dirPath)
+                if lin1 != linTmp:
+                    r2 = f
+                    break
     return r1,r2
 #-----------------------------------------------------------------------------------------------------------------------
 def delUnnecessaryFiles(dirPath):

@@ -6,7 +6,7 @@ var elMin = document.getElementById("min");
 var elMax = document.getElementById("max");
 var elTar = document.getElementById("target");
 var elMod = document.getElementById("model");
-var elCom = document.getElementById("comp");
+//var elCom = document.getElementById("comp");
 
 var minElem = [];
 var maxElem = [];
@@ -15,7 +15,7 @@ var modElem = [];
 var comElem = [];
 
 var timeMod = document.getElementById("time");
-var timeCom = document.getElementById("timeC");
+//var timeCom = document.getElementById("timeC");
 
 var timeSort = true;
 var timeSortTd = document.getElementById("timeSort");
@@ -64,10 +64,10 @@ function CreateElement()
     newElement.textContent = "";
     modElem[i] = newElement;
 
-    newElement = document.createElement('td');
-    elCom.appendChild(newElement);
-    newElement.textContent = "";
-    comElem[i] = newElement;
+    //newElement = document.createElement('td');
+    //elCom.appendChild(newElement);
+    //newElement.textContent = "";
+    //comElem[i] = newElement;
   }
 }
 //--------------------------------------------------------------------------------
@@ -312,16 +312,16 @@ function PrintM()
     }
   }
 
-  if (plotTimeC.length > 0) {
-    timeCom.textContent = plotTimeC[1][plotTimeC[0].length-1];
-  }
-  else {
-    timeCom.textContent = "";
-    for (var i = 0; i < listEl.length; i++) {
-      comElem[i].textContent = "";
-      comElem[i].style.backgroundColor = "white";
-    }
-  }
+//  if (plotTimeC.length > 0) {
+//    timeCom.textContent = plotTimeC[1][plotTimeC[0].length-1];
+//  }
+//  else {
+//    timeCom.textContent = "";
+//    for (var i = 0; i < listEl.length; i++) {
+//      comElem[i].textContent = "";
+//      comElem[i].style.backgroundColor = "white";
+//    }
+//  }
 
   PrintP();
   //alert('P');
@@ -333,7 +333,7 @@ function PrintM()
       modElem[i-1].style.backgroundColor = "white";
 
       if (startTime > 0) {
-        if (x >= startTime) {modElem[i-1].textContent = localData[i][1];}//+localData[i][0];}
+        if (x >= startTime && localData[i][1] >= 0) {modElem[i-1].textContent = localData[i][1];}//+localData[i][0];}
         if (localData[i][4] === 1 && x >= startTime) {modElem[i-1].style.backgroundColor = "yellow";}
       }
       if (localData[i][2] >= 0 && i > 0) {minElem[i-1].textContent = localData[i][2];} else {minElem[i-1].textContent = "";}//+localData[i][0]
@@ -346,21 +346,21 @@ function PrintM()
     if (localData[0][1] > 0) {modElem[modElem.length-1].textContent = localData[0][1];}//+localData[i][0];}
     else {modElem[modElem.length-1].textContent = "";}
   }
-  if (localDataC.length > 0) {
-    for (var i = 1; i < localDataC.length; i++) {
-      var xC = plotTimeC[0][plotTimeC[0].length-1];
-      comElem[i-1].textContent = "";
-      comElem[i-1].style.backgroundColor = "white";
+//  if (localDataC.length > 0) {
+//    for (var i = 1; i < localDataC.length; i++) {
+//      var xC = plotTimeC[0][plotTimeC[0].length-1];
+//      comElem[i-1].textContent = "";
+//      comElem[i-1].style.backgroundColor = "white";
 
-      if (startTime > 0) {
-        if ((xC >= startTime) && (localDataC[i][1] > 0)) {comElem[i-1].textContent = localDataC[i][1];}//+localData[i][0];}
-        if (localDataC[i][4] === 1 && xC >= startTime) {comElem[i-1].style.backgroundColor = "yellow";}
-      }
-      if (localDataC[i][2] >= 0 && i > 0) {minElem[i-1].textContent = localDataC[i][2];} else {minElem[i-1].textContent = "";}//+localData[i][0]
-      if (localDataC[i][3] >= 0 && i > 0) {maxElem[i-1].textContent = localDataC[i][3];} else {maxElem[i-1].textContent = "";}//+localData[i][0]
-      if (localDataC[i][5] >= 0 && i > 0) {tarElem[i-1].textContent = localDataC[i][5];} else {tarElem[i-1].textContent = "";}//+localData[i][0]
-    }
-  }
+//      if (startTime > 0) {
+//        if ((xC >= startTime) && (localDataC[i][1] >= 0)) {comElem[i-1].textContent = localDataC[i][1];}//+localData[i][0];}
+//        if (localDataC[i][4] === 1 && xC >= startTime) {comElem[i-1].style.backgroundColor = "yellow";}
+//      }
+//      if (localDataC[i][2] >= 0 && i > 0) {minElem[i-1].textContent = localDataC[i][2];} else {minElem[i-1].textContent = "";}//+localData[i][0]
+//      if (localDataC[i][3] >= 0 && i > 0) {maxElem[i-1].textContent = localDataC[i][3];} else {maxElem[i-1].textContent = "";}//+localData[i][0]
+//      if (localDataC[i][5] >= 0 && i > 0) {tarElem[i-1].textContent = localDataC[i][5];} else {tarElem[i-1].textContent = "";}//+localData[i][0]
+//    }
+//  }
   PrintAdd();
   PrintTemp();
 }
