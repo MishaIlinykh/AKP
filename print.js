@@ -1,4 +1,5 @@
-﻿var listEl = ["C","Si","Mn","P","S","Al","Cu","Cr","Mo","Ni","V","Ti","Nb","Ca","Co","W","B","As","Sn","N","Cэ","T, °C"];
+﻿var listElsort = [21,0,2,1,7,9,6,4,3,5,8,12,11,10,13,17,19,14,16,15,18,20];
+var listEl = ["C","Si","Mn","P","S","Al","Cu","Cr","Mo","Ni","V","Ti","Nb","Ca","Co","W","B","As","Sn","N","Cэ","T, °C"];
 
 var el = document.getElementById("el");
 var elLab = document.getElementById("elLab");
@@ -6,16 +7,13 @@ var elMin = document.getElementById("min");
 var elMax = document.getElementById("max");
 var elTar = document.getElementById("target");
 var elMod = document.getElementById("model");
-//var elCom = document.getElementById("comp");
 
 var minElem = [];
 var maxElem = [];
 var tarElem = [];
 var modElem = [];
-var comElem = [];
 
 var timeMod = document.getElementById("time");
-//var timeCom = document.getElementById("timeC");
 
 var timeSort = true;
 var timeSortTd = document.getElementById("timeSort");
@@ -28,20 +26,20 @@ var timeSortTdT = document.getElementById("timeSortT");
 //--------------------------------------------------------------------------------
 function CreateElement()
 {
-    elLab.style.borderColor ="white";
+  elLab.style.borderColor ="white";
   for (var i = 0; i < listEl.length; i++)
   {
     var newElement = document.createElement('td');
     el.appendChild(newElement);
-    newElement.textContent = listEl[i];
+    newElement.textContent = listEl[listElsort[i]];
     newElement.style.backgroundColor = "skyblue";
 
-    if (i < listEl.length - 1) {
+    //if (i < listEl.length - 1) {
     newElement = document.createElement('td');
     elLab.appendChild(newElement);
-    newElement.textContent = listEl[i];
+    newElement.textContent = listEl[listElsort[i]];
     newElement.style.backgroundColor = "skyblue";
-    }  
+    //}  
   
     newElement = document.createElement('td');
     elMin.appendChild(newElement);
@@ -64,10 +62,6 @@ function CreateElement()
     newElement.textContent = "";
     modElem[i] = newElement;
 
-    //newElement = document.createElement('td');
-    //elCom.appendChild(newElement);
-    //newElement.textContent = "";
-    //comElem[i] = newElement;
   }
 }
 //--------------------------------------------------------------------------------
@@ -76,7 +70,6 @@ function AddLab(tab,j,posAn)
       var newTr = document.createElement('tr');
 
       var tit = "";
-      //if (j === 0) {tit = "Анализ";}
       if (j === posAn) {tit = "Анализ";}
       var newEl = document.createElement('td');      
       newTr.appendChild(newEl);
@@ -89,36 +82,35 @@ function AddLab(tab,j,posAn)
       newEl.textContent = timePointR[j];
       newEl.style.backgroundColor = "lightyellow";
 
+      var newEl = document.createElement('td');      
+      newTr.appendChild(newEl);
+      newEl.textContent = "";
+      newEl.style.backgroundColor = "lightyellow";
+
       for (var i = 0; i < plotPointR.length; i++) {
         var newEl = document.createElement('td');
         newTr.appendChild(newEl);
-        newEl.textContent = plotPointR[i][j];
+        newEl.textContent = plotPointR[listElsort[i+1]][j];
         newEl.style.backgroundColor = "lightyellow";
         newEl.style.color = "black";
         newEl.style.fontWeight = "normal";
         
         if (localData.length > 0) {
-          var maxTmp = localData[i+1][3];
+          var maxTmp = localData[listElsort[i+1]+1][3];
           if (maxTmp < 0) {maxTmp = 1000;}
-          var minTmp = localData[i+1][2]; }
-        else {
-          if (localDataC.length > 0) {
-            var maxTmp = localDataC[i+1][3];
-            if (maxTmp < 0) {maxTmp = 1000;}
-            var minTmp = localDataC[i+1][2]; }
-        }
-
-        if ((plotPointR[i][j] >= minTmp) && (plotPointR[i][j] <= maxTmp))
-        {
-          newEl.style.backgroundColor = "lightyellow";
-        }
-        else {
-          if (plotPointR[i][j] < minTmp) {newEl.style.backgroundColor = "deepskyblue";}
-          if (plotPointR[i][j] > maxTmp) {newEl.style.backgroundColor = "orange";}
-          //newEl.style.backgroundColor = "orange";//"lime";
-          //newEl.style.color = "crimson";//"purple";
-          newEl.style.fontWeight = "bold";
-        }
+          var minTmp = localData[listElsort[i+1]+1][2]; }
+        
+          if ((plotPointR[listElsort[i+1]][j] >= minTmp) && (plotPointR[listElsort[i+1]][j] <= maxTmp))
+          {
+            newEl.style.backgroundColor = "lightyellow";
+          }
+          else {
+            if (plotPointR[listElsort[i+1]][j] < minTmp) {newEl.style.backgroundColor = "deepskyblue";}
+            if (plotPointR[listElsort[i+1]][j] > maxTmp) {newEl.style.backgroundColor = "orange";}
+            //newEl.style.backgroundColor = "orange";//"lime";
+            //newEl.style.color = "crimson";//"purple";
+            newEl.style.fontWeight = "bold";
+          }
       // newEl.width = "50";
       }
       tab.appendChild(newTr);
@@ -312,55 +304,31 @@ function PrintM()
     }
   }
 
-//  if (plotTimeC.length > 0) {
-//    timeCom.textContent = plotTimeC[1][plotTimeC[0].length-1];
-//  }
-//  else {
-//    timeCom.textContent = "";
-//    for (var i = 0; i < listEl.length; i++) {
-//      comElem[i].textContent = "";
-//      comElem[i].style.backgroundColor = "white";
-//    }
-//  }
-
   PrintP();
   //alert('P');
   if (localData.length > 0) {
     var x = plotTime[0][plotTime[0].length-1];
+    if (localData[0][1] >= 0) {modElem[0].textContent = localData[0][1];}//+localData[i][0];}
+    else {modElem[0].textContent = "";}
     for (var i = 1; i < localData.length; i++) {
-      
-      modElem[i-1].textContent = "";
-      modElem[i-1].style.backgroundColor = "white";
+      modElem[i].textContent = "";
+      modElem[i].style.backgroundColor = "white";
 
       if (startTime > 0) {
-        if (x >= startTime && localData[i][1] >= 0) {modElem[i-1].textContent = localData[i][1];}//+localData[i][0];}
-        if (localData[i][4] === 1 && x >= startTime) {modElem[i-1].style.backgroundColor = "yellow";}
+        if (x >= startTime && localData[listElsort[i]+1][1] >= 0) {modElem[i].textContent = localData[listElsort[i]+1][1];}//+localData[i][0];}
+        if (localData[listElsort[i]+1][4] === 1 && x >= startTime) {modElem[i].style.backgroundColor = "yellow";}
       }
-      if (localData[i][2] >= 0 && i > 0) {minElem[i-1].textContent = localData[i][2];} else {minElem[i-1].textContent = "";}//+localData[i][0]
-      if (localData[i][3] >= 0 && i > 0) {maxElem[i-1].textContent = localData[i][3];} else {maxElem[i-1].textContent = "";}//+localData[i][0]
-      if (localData[i][5] >= 0 && i > 0) {tarElem[i-1].textContent = localData[i][5];} else {tarElem[i-1].textContent = "";}//+localData[i][0]
+      if (localData[listElsort[i]+1][2] >= 0 && i > 0) {minElem[i].textContent = localData[listElsort[i]+1][2];} else {minElem[i].textContent = "";}//+localData[i][0]
+      if (localData[listElsort[i]+1][3] >= 0 && i > 0) {maxElem[i].textContent = localData[listElsort[i]+1][3];} else {maxElem[i].textContent = "";}//+localData[i][0]
+      if (localData[listElsort[i]+1][5] >= 0 && i > 0) {tarElem[i].textContent = localData[listElsort[i]+1][5];} else {tarElem[i].textContent = "";}//+localData[i][0]
     }
 //    if (startTime > 0) {
 //      if (x >= startTime) {modElem[modElem.length-1].textContent = localData[0][1];}//+localData[i][0];}
 //    }
-    if (localData[0][1] > 0) {modElem[modElem.length-1].textContent = localData[0][1];}//+localData[i][0];}
-    else {modElem[modElem.length-1].textContent = "";}
+//    if (localData[0][1] > 0) {modElem[modElem.length-1].textContent = localData[0][1];}//+localData[i][0];}
+//    else {modElem[modElem.length-1].textContent = "";}
   }
-//  if (localDataC.length > 0) {
-//    for (var i = 1; i < localDataC.length; i++) {
-//      var xC = plotTimeC[0][plotTimeC[0].length-1];
-//      comElem[i-1].textContent = "";
-//      comElem[i-1].style.backgroundColor = "white";
 
-//      if (startTime > 0) {
-//        if ((xC >= startTime) && (localDataC[i][1] >= 0)) {comElem[i-1].textContent = localDataC[i][1];}//+localData[i][0];}
-//        if (localDataC[i][4] === 1 && xC >= startTime) {comElem[i-1].style.backgroundColor = "yellow";}
-//      }
-//      if (localDataC[i][2] >= 0 && i > 0) {minElem[i-1].textContent = localDataC[i][2];} else {minElem[i-1].textContent = "";}//+localData[i][0]
-//      if (localDataC[i][3] >= 0 && i > 0) {maxElem[i-1].textContent = localDataC[i][3];} else {maxElem[i-1].textContent = "";}//+localData[i][0]
-//      if (localDataC[i][5] >= 0 && i > 0) {tarElem[i-1].textContent = localDataC[i][5];} else {tarElem[i-1].textContent = "";}//+localData[i][0]
-//    }
-//  }
   PrintAdd();
   PrintTemp();
 }
@@ -384,7 +352,7 @@ function PrintAll()
 {
   PrintM();
   var timerId = setInterval(function() {
-    include('line.js','dataLine');// url
+    include('http://test-anaconda.chtpz.ru:5005/line.js','dataLine');// url
     PrintM();
   }, 1000);
 }

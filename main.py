@@ -2,6 +2,8 @@ import pandas as pd
 from datetime import datetime
 import time
 import sys
+import warnings
+warnings.filterwarnings("ignore")
 
 # файл с необходимыми директориями
 config = pd.read_csv(r'config.dat', sep='=')
@@ -31,6 +33,7 @@ def made_strings(name_dir, titles, mark, material, titles_for_temp, counter, gra
     all_params = addMelting(all_params, name_dir, mark, counter)
     # Замеры химии по данной плавке
     him, flag = addChemistry(all_params, name_dir)
+
     for i in range(him.shape[0]):
         him.loc[i, 'Время начала плавки'] = all_params.loc[0, 'Время начала плавки']
 
@@ -123,10 +126,11 @@ while (True):
         z = -1
 
         #Находим массу металла
-        weight = addWeight(dir_name, melting)
+        weight = addWeight(dir_name, melting, counter)
     if weight == 130000:
-        weight = addWeight(dir_name, melting)
+        weight = addWeight(dir_name, melting, counter)
     one_object.loc[0, 'm_calk'] = weight
+    for_temp.loc[0, 'INITIALWEIGHTSTEEL'] = weight
 
     all_strings = pd.concat([all_strings, one_object], sort = True)
     all_strings.reset_index(inplace=True, drop=True)
@@ -146,7 +150,6 @@ while (True):
             pred_chCalc.loc[0, i.upper()] = one_object.loc[0, 'VAL' + i + '_pr']
     if flag_temp > 0:
         pred = predict_TEMP(models, pred, for_temp)
-        print(flag_temp)
     pred = pred.fillna(-1)
 
     # для отрисовки граффиков пока нет замеров химии
@@ -165,7 +168,6 @@ while (True):
     all_object['TEMP'] = all_object['TEMP'].astype(int)
     all_object.reset_index(inplace=True, drop=True)
     pred_chCalc = pred_chCalc.fillna(-1)
-
     all_object_chCalc = pd.concat([all_object_chCalc, pred_chCalc])
     all_object_chCalc.reset_index(inplace=True, drop=True)
 

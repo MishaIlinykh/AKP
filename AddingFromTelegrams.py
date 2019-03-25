@@ -39,11 +39,14 @@ def addMelting(dataFrame, name_dir, mark, counter):
 
     return dataFrame
 #-----------------------------------------------------------------------------------------------------------------------
-def addWeight(name_dir, melting):
+def addWeight(name_dir, melting, counter):
     signal_w = 'EAL270'
     EAF, EAF_dop = getTwoLast(name_dir + '/EAF')
     tel_EAF = open_DF(name_dir + '/EAF/' + EAF)
     tel_EAF = tel_EAF[(tel_EAF[3] == signal_w) & (tel_EAF[19] == melting)]
+
+    # удаляем файлы
+    # delUnnecessaryFiles(name_dir + '/EAF')
 
     # добавляем дополнительный файл
     if EAF_dop != None:
@@ -79,8 +82,8 @@ def addWeightEAL(dataFrame, name_dir, counter):
     tel_EAF.reset_index(inplace=True, drop=True)
 
     # удаляем файлы
-    # if counter ==0:
-    #     delUnnecessaryFiles(name_dir + '/EAF')
+    # if counter == 0:
+    #   delUnnecessaryFiles(name_dir + '/EAF')
 
     # находим массут добавок на ДСП
     m = 0
@@ -156,8 +159,8 @@ def addMeasurementChemistry(dataFrame, name_dir, counter, flag):
     tel_chemical.reset_index(inplace=True, drop=True)
 
     # удаляем файлы
-    # if counter == 0:
-    #     delUnnecessaryFiles(name_dir + '/LAB')
+    if counter == 0:
+        delUnnecessaryFiles(name_dir + '/LAB')
 
     if flag > 0:
         for i in range(tel_chemical.shape[0]):
@@ -199,20 +202,23 @@ def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, 
     signal_t = 'LFL211'
     signal_el = 'LFL223'
     signal_mat = 'LFL260'
+    signal_argon = 'LFL226'
     melting = dataFrame.loc[0, 'Номер плавки']
     for_temp = pd.DataFrame(columns=titles_for_temp)
-    for i in titles_for_temp[3:]:
+    for i in titles_for_temp[5:]:
         for_temp.loc[0, i] = 0
     LF_TlgReceiver, LF_TlgReceiver_dop = getTwoLast(name_dir + '/LF')
     tel_main = open_DF(name_dir + '/LF/' + LF_TlgReceiver)
     tel_main = tel_main[(tel_main[19] == melting) & (
-            (tel_main[3] == signal_t) | (tel_main[3] == signal_mat) | (tel_main[3] == signal_el))]
+            (tel_main[3] == signal_t) | (tel_main[3] == signal_mat) | (tel_main[3] == signal_el)
+            | (tel_main[3] == signal_argon))]
 
     # добавляем дополнительный файл
     if LF_TlgReceiver_dop != None:
         tel_main_dop = open_DF(name_dir + '/LF/' + LF_TlgReceiver_dop)
         tel_main_dop = tel_main_dop[(tel_main_dop[19] == melting) & (
-                (tel_main_dop[3] == signal_t) | (tel_main_dop[3] == signal_mat) | (tel_main_dop[3] == signal_el))]
+                (tel_main_dop[3] == signal_t) | (tel_main_dop[3] == signal_mat) | (tel_main_dop[3] == signal_el)
+                | (tel_main_dop[3] == signal_argon))]
         tel_main = pd.concat([tel_main_dop, tel_main])
     tel_main.reset_index(inplace=True, drop=True)
 
@@ -280,6 +286,24 @@ def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, 
             w = 0
         for_temp.loc[0, 'W'] = w
 
+    # добавляем расход аргнона для прогнозирования температуры
+    if flag_temp > 0:
+        temp = tel_main[
+            (tel_main[3] == signal_argon) & (tel_main['data_time'] > for_temp.loc[0, 'Время замера температуры']) &
+            (tel_main['data_time'] < for_temp.loc[0, 'Время'])]
+
+        if len(temp['data_time']) != 0:
+            argon01 = int(temp[temp['data_time'] == min(temp['data_time'])][32].values[0])
+            argon02 = int(temp[temp['data_time'] == min(temp['data_time'])][33].values[0])
+            argon1 = int(temp[temp['data_time'] == max(temp['data_time'])][32].values[0])
+            argon2 = int(temp[temp['data_time'] == max(temp['data_time'])][33].values[0])
+            argon = (argon1-argon01+argon2-argon02)/1000
+
+        else:
+            argon = 0
+        for_temp.loc[0, 'ARGONAM_IN'] = argon
+        print('Argon: ', argon)
+
     # добавляем добавки материалов для прогнозирования температуры
     if flag_temp > 0:
         temp = tel_main[
@@ -331,8 +355,9 @@ def addMainInformation(dataFrame, name_dir, counter, temperature, all_additive, 
 
         # добавляем добавки материалов
         temp = tel_main[
-            (tel_main[3] == signal_mat) & (tel_main['data_time'] > dataFrame.loc[0, 'Последний замер химии']) & (
+            (tel_main[3] == signal_mat) & (tel_main['data_time'] > (dataFrame.loc[0, 'Последний замер химии'] - timedelta(minutes=3))) & (
                         tel_main[25] == '9')]
+
         temp.reset_index(inplace=True, drop=True)
         for i in range(temp.shape[0]):
             st = temp.iloc[i]

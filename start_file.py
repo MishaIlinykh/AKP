@@ -1,4 +1,4 @@
-import psutil
+﻿import psutil
 import os
 import time
 while(True):
@@ -11,6 +11,6 @@ while(True):
             l.append(pr[1])
     print(l)
     if 'main.py' not in l:
-        os.system('python C:/Users/Mikhail.Ilinykh/Desktop/4.2/main.py')
+        os.system('python C:/Users/Mikhail.Ilinykh/Desktop/1/4.2/main.py')
     else:
         print('exist')

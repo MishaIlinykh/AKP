@@ -114,6 +114,11 @@ def __calculation_chemical(dataFrame):
 #-----------------------------------------------------------------------------------------------------------------------
 def predict(models, test, columns, ferro, assimilation):
 
+    try:
+        test.loc[0, 'АТФ-75Б'] == test.loc[0, 'АТФ-75']
+        test = test.drop('АТФ-75', 1)
+    except KeyError:
+        pass
     # добавляем val для каждого химического эллемента
     test = __calculation_val(test, ferro, assimilation)
     # рассчитываем содержание

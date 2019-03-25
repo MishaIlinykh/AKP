@@ -83,6 +83,9 @@ def save_for_analysis_temp(data_object, data_temp, dir):
     df_save = pd.DataFrame(columns=col)
 
     for i in range(1, data_temp.shape[0]):
+        print(data_temp.shape[0])
+        print(data_temp)
+        print()
         time = data_temp.loc[i, 'Время замера температуры']
         temp = data_object[data_object['Время'] < time]
         if temp.shape[0] < 1:
