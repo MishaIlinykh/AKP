@@ -45,6 +45,7 @@ class ToJS():
     dataPoint = pd.DataFrame()
     dataTemp = pd.DataFrame()
     dataAdditive = pd.DataFrame()
+    dataRecommendation = pd.DataFrame()
     ds_compute = pd.DataFrame()
 
     startPicTime = -1
@@ -735,6 +736,26 @@ class ToJS():
                     i] + '","' + str(timeTmp) + '",' + str(self.dataAdditive['Масса'][i]) + ']'
         tmpStr = tmpStr + '];'
 
+
+        tmpStr = tmpStr + '\nvar recom = ['
+        if self.dataRecommendation.shape[0] > 0:
+            x = self.dataRecommendation['Время добавки'][0]
+            timeTmp = str(x)
+            k = timeTmp.rfind('.')
+            if k > 0:
+                timeTmp = timeTmp[:k]
+            tmpStr = tmpStr + '["' + str(self.dataRecommendation['Код'][0]) + '","' + self.dataRecommendation['Описание'][
+                0] + '","' + str(timeTmp) + '",' + str(self.dataRecommendation['Масса'][0]) + ']'
+            for i in range(1, self.dataRecommendation.shape[0]):
+                x = self.dataRecommendation['Время добавки'][i]
+                timeTmp = str(x)
+                k = timeTmp.rfind('.')
+                if k > 0:
+                    timeTmp = timeTmp[:k]
+                tmpStr = tmpStr + ',["' + str(self.dataRecommendation['Код'][i]) + '","' + self.dataRecommendation['Описание'][
+                    i] + '","' + str(timeTmp) + '",' + str(self.dataRecommendation['Масса'][i]) + ']'
+        tmpStr = tmpStr + '];'
+
         tmpStr = tmpStr + '\nvar nowTime = ["' + self.nowTimeL[1] + '","' + self.nowTimeL[2] + '"];'
 
         f = open(os.path.join(self.config[self.config['Описание'] == 'Путь к папке с сайтом']['Значение'].values[0],
@@ -768,6 +789,11 @@ class ToJS():
     def setAdditive(self, dataAdd=pd.DataFrame(
         {'Время добавки': pd.Series(), 'Код': pd.Series(), 'Описание': pd.Series(), 'Масса': pd.Series()})):
         self.dataAdditive = dataAdd.copy()
+
+    # -------------------------------------------------------
+    def setRecommendation(self, dataRecom=pd.DataFrame(
+        {'Время добавки': pd.Series(), 'Код': pd.Series(), 'Описание': pd.Series(), 'Масса': pd.Series()})):
+        self.dataRecommendation = dataRecom.copy()
 
     # -------------------------------------------------------
     def setTime(self, picTime):

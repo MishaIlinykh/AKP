@@ -439,6 +439,53 @@ function PrintAdd()
     tab.appendChild(newTr);
 }
 //--------------------------------------------------------------------------
+function AddRecom(tab,j)
+{
+        var newTr = document.createElement('tr');
+
+        var newEl = document.createElement('td');      
+        newTr.appendChild(newEl);
+        newEl.textContent = recom[j][0];
+
+        newEl = document.createElement('td');      
+        newTr.appendChild(newEl);
+        newEl.textContent = recom[j][1];
+
+        var newEl = document.createElement('td');      
+        newTr.appendChild(newEl);
+        newEl.textContent = recom[j][2];
+
+        newEl = document.createElement('td');      
+        newTr.appendChild(newEl);
+        newEl.textContent = recom[j][3];
+        newEl.classList.add('tright');
+      
+        tab.appendChild(newTr);
+}
+//--------------------------------------------------------------------------
+function PrintRecom()
+{
+    var tab = document.getElementById("recom");
+    var m = tab.children.length - 1;
+    
+    if (m > 0) {
+      for (var i = m; i > 0; i--){
+        var div = tab.children[i];
+        tab.removeChild(div);
+      }
+    }
+
+
+      for (var j = 0; j < recom.length; j++) {
+        AddRecom(tab,j);
+      }
+
+//    var newTr = document.createElement('tr');    
+//    var newEl = document.createElement('td');      
+//    newTr.appendChild(newEl);
+//    tab.appendChild(newTr);
+}
+//--------------------------------------------------------------------------
 function plotGraph()
 {
   field.setLineDash([]);
@@ -475,6 +522,7 @@ function plotGraph()
   plotP();
   plotT();
   PrintAdd();
+  PrintRecom();
   field.lineWidth=2;
 
   var ch = plotLine.length;

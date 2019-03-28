@@ -63,7 +63,7 @@ def __for_crutch():
     crutch_mat = {'C': С, 'Si': Si, 'Mn': Mn}
     return  crutch_mat
 #-----------------------------------------------------------------------------------------------------------------------
-def __calculation_val(dataFrame, ferro, assimilation):
+def calculation_val(dataFrame, ferro, assimilation):
     # val = m*(Y/100)*(X/100), где
     # m - масса ферросплава
     # X - процентное содержание элемента в ферросплаве
@@ -98,7 +98,7 @@ def __calculation_val(dataFrame, ferro, assimilation):
     dataFrame.loc[0, 'm_dob'] = m
     return dataFrame
 #-----------------------------------------------------------------------------------------------------------------------
-def __calculation_chemical(dataFrame):
+def calculation_chemical(dataFrame, round_coeff):
     # элементы по которым будет производиться рассчет
     a = ['Mn', 'Nb', 'Mo', 'V', 'Si', 'Ca', 'Al', 'S', 'C', 'Cr',
          'Ti', 'Ni', 'P', 'Cu']
@@ -108,11 +108,11 @@ def __calculation_chemical(dataFrame):
         val = dataFrame.loc[0, col]
         X1 = dataFrame.loc[0, 'VAL' + col.upper()]
         estimated_value_m = dataFrame.loc[0, 'm_calk']
-        dataFrame.loc[0, 'VAL' + col + '_pr'] = round(X2(val, X1, estimated_value_m), 4)
+        dataFrame.loc[0, 'VAL' + col + '_pr'] = round(X2(val, X1, estimated_value_m), round_coeff)
 
     return dataFrame
 #-----------------------------------------------------------------------------------------------------------------------
-def predict(models, test, columns, ferro, assimilation):
+def predict(models, test, columns, ferro, assimilation, round_coeff):
 
     try:
         test.loc[0, 'АТФ-75Б'] == test.loc[0, 'АТФ-75']
@@ -120,9 +120,12 @@ def predict(models, test, columns, ferro, assimilation):
     except KeyError:
         pass
     # добавляем val для каждого химического эллемента
-    test = __calculation_val(test, ferro, assimilation)
+    test = calculation_val(test, ferro, assimilation)
     # рассчитываем содержание
-    test = __calculation_chemical(test)
+    if round_coeff == 3:
+        test = calculation_chemical(test, 4)
+    else:
+        test = calculation_chemical(test, 6)
     # формируем датафрейм с химией рассчитанной по модели
     pred = pd.DataFrame(columns=columns)
     for i in columns[:4]+columns[30:31:1]:
@@ -138,11 +141,11 @@ def predict(models, test, columns, ferro, assimilation):
         test_pred.loc[0, 'FeSi75'] =0
         test_pred = test_pred[models['title_VAL'+i]]
         if (i == 'MN'):
-            pred_value = round(test.loc[0, 'VAL' + i[0] + i[1].lower() + '_pr'], 3)
+            pred_value = round(test.loc[0, 'VAL' + i[0] + i[1].lower() + '_pr'], round_coeff)
         elif (i == 'TI') or (i == 'NI'):
             pred_value = test.loc[0, 'VAL' + i[0] + i[1].lower()+ '_pr']
         else:
-            pred_value = round(models['VAL' + i + '2'].predict(test_pred)[0], 3)
+            pred_value = round(models['VAL' + i + '2'].predict(test_pred)[0], round_coeff)
         pred.loc[0, i] = pred_value
 
         # Чтобы не вылезали отрицательные значения

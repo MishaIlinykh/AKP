@@ -18,6 +18,7 @@ from sortFiles import getTwoLast, delUnnecessaryFiles, delVD
 from AddingFromTelegrams import addMelting, addWeightEAL, addMeasurementChemistry, addMainInformation, addWeight, addChemistry
 from models import add_models, predict, predict_TEMP
 from save import save_for_verification, save_for_analysis, save_assimilation_coef, save_for_analysis_temp
+from recommendationSystem import additiveRecommendation
 
 # собираем основную инфрмацию из телеграмм, формируем датафреймы для дальнейшего прогнозирования
 def made_strings(name_dir, titles, mark, material, titles_for_temp, counter, graph):
@@ -52,6 +53,8 @@ def made_strings(name_dir, titles, mark, material, titles_for_temp, counter, gra
 
 # считываем модели и все необходимые файлы
 models = add_models(dir)
+short = pd.read_excel(dir + 'files/short.xlsx')
+boundaries =pd.read_excel(dir + 'files/cods.xlsx')
 mark = pd.read_excel(dir + 'files/mark.xlsx')
 material = pd.read_excel(dir + 'files/material.xlsx')
 mean_chemical = pd.read_excel(dir+'files/mean_xim.xlsx')
@@ -143,7 +146,7 @@ while (True):
         pred = pd.DataFrame(columns=columns)
 
     elif (flag > 0):
-        pred, one_object = predict(models, one_object, columns, ferro, assimilation)
+        pred, one_object = predict(models, one_object, columns, ferro, assimilation, 3)
         for i in ['Время', 'Номер плавки', 'Марка стали', 'Время начала плавки', 'Код марки стали']:
             pred_chCalc.loc[0,i] = one_object.loc[0, i]
         for i in ['Mn', 'Nb', 'Mo', 'V', 'Si', 'Al', 'C', 'Cr','Ti', 'Ni', 'Cu']:
@@ -195,12 +198,23 @@ while (True):
         all_object_chCalc['TEMP'] = all_object_chCalc['TEMP'].astype(int)
         graph.setLineC(all_object_chCalc)
 
+    # рекомендательная система
+    # начинает работать, когда приходит замер химии, затем ждет следующего замера
+    if flag < 1:
+        recommendation = pd.DataFrame(columns=['Время добавки', 'Код', 'Описание', 'Масса'])
+    if (bool_temp == False) and (flag > 0):
+        recommendation = additiveRecommendation(one_object, ferro, assimilation, short, boundaries, material, models, columns)
+        print(recommendation)
+
+    graph.setRecommendation(recommendation)
+
     if (bool_temp == False) and (flag > 0):
         time_start_him = datetime.now()
         gT.setTime(time_start_him, melting)
         bool_temp = True
 
     graph.setAdditive(all_additive)
+
 
     timeP = gT.getTime(melting)
     if timeP != datetime.strptime('1900-01-01 00:00:00', '%Y-%m-%d %H:%M:%S'):
